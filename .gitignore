@@ -1,0 +1,11 @@
+
+*.vsidx
+*.v2
+*.cache
+*.lock
+*.2
+.vs/OhMyDog_API/v17/.suo
+OhMyDog_API/obj/Debug/net6.0/OhMyDog_API.csproj.FileListAbsolute.txt
+*.BuildWithSkipAnalyzers
+*.editorconfig
+*.pdb
