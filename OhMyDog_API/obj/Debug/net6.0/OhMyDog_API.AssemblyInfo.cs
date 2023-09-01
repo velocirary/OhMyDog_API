@@ -17,7 +17,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
 [assembly: System.Reflection.AssemblyProductAttribute("OhMyDog_API")]
 [assembly: System.Reflection.AssemblyTitleAttribute("OhMyDog_API")]
-[assembly: System.Reflection.AssemblyVersionAttribute("0.2.0.0")]
+[assembly: System.Reflection.AssemblyVersionAttribute("0.3.0.0")]
 [assembly: System.Resources.NeutralResourcesLanguageAttribute("pt-BR")]
 
 // Gerado pela classe WriteCodeFragment do MSBuild.
