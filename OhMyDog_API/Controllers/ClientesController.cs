@@ -3,6 +3,7 @@ using System.Data.Odbc;
 using static OhMyDog_API.Model.Parameters;
 using System.Web;
 using OhMyDog_API.Model.Clientes;
+using OhMyDog_API.Model.Pets;
 
 namespace OhMyDog_API.Controllers
 {
@@ -36,13 +37,77 @@ namespace OhMyDog_API.Controllers
             }
         }
 
-        [HttpGet]
+        [HttpPost]
         [Route("InserirNovoCliente")]
-        public LoginCliente PostNovoCliente([FromBody] LoginCliente cliente)
+        public async Task<IActionResult> PostNovoCliente([FromBody] LoginCliente cliente)
         {
-            string nome = cliente.Nome;
+            try
+            {
+                if (cliente == null)
+                    return BadRequest();
 
-            return null;
+                string queryString = $"INSERT INTO cliente (codCLiente, Nome) VALUES ('{cliente.CodCliente}', '{cliente.Nome}')";
+                OdbcCommand command = new OdbcCommand(queryString, connection);
+                command.ExecuteReader();
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message + "\n" + ex.StackTrace);
+            }
+        }
+
+        [HttpPatch]
+        [Route("AtualizarCliente")]
+        public async Task<IActionResult> AtualizarCliente([FromBody] LoginCliente cliente)
+        {
+            try
+            {
+                string queryString = $"UPDATE Cliente SET " +
+                    $"Nome = '{cliente.Nome}', " +
+                    $"CPF = '{cliente.CPF}', " +
+                    $"DataNascimento = '{cliente.DataNasc}', " +
+                    $"CEP = '{cliente.CEP}', " +
+                    $"Logradouro = '{cliente.Logradouro}', " +
+                    $"Bairro = '{cliente.Bairro}', "+
+                    $"Municipio = '{cliente.Municipio}', "+
+                    $"Estado = '{cliente.Estado}', "+
+                    $"Email = '{cliente.Email}', " +
+                    $"Senha = '{cliente.Senha}', "+
+                    $"Celular = '{cliente.Celular}' ";
+
+                OdbcCommand command = new OdbcCommand(queryString, connection);
+                command = new OdbcCommand(queryString, connection);
+                command.ExecuteReader();
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message + "\n" + ex.StackTrace);
+            }
+        }
+
+        [HttpDelete]
+        [Route("DeletarCliente/{codCliente}")]
+        public async Task<IActionResult> DeletarCliente([FromRoute] string codCliente)
+        {
+            try
+            {
+                string queryString = $"SELECT codCliente FROM Pet WHERE codCliente = '{codCliente}'";
+                OdbcCommand command = new OdbcCommand(queryString, connection);
+
+                queryString = $"DELETE FROM Cliente WHERE codPet ='{codCliente}'";
+                command = new OdbcCommand(queryString, connection);
+                command.ExecuteReader();
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message + "\n" + ex.StackTrace);
+            }
         }
 
     }
