@@ -23,5 +23,18 @@ namespace OhMyDog_API.Controllers
                 throw new Exception("Erro ao abrir a conexão: " + e.Message);
             }
         }
+    
+        public static OdbcDataReader ExecutaQuery(string query)
+        {
+            if (Model.Parameters.connection.State == System.Data.ConnectionState.Open) Model.Parameters.connection.Close();
+
+            Model.Parameters.connection.Open();
+
+            OdbcCommand command = new(query, Model.Parameters.connection);
+
+            var result = command.ExecuteReader();
+
+            return result;
+        }
     }
 }
