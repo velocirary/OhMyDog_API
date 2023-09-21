@@ -1,6 +1,6 @@
 ﻿namespace OhMyDog_API.Model.Clientes
 {
-    public class LoginCliente
+    public class DadosClientes
     {
         public string CodCliente { get; set; }
 
@@ -25,5 +25,12 @@
         public string Senha { get; set; }
 
         public string Celular { get; set; }
+    }
+
+    public class LoginCliente
+    {
+        public string Email { get; set; }
+
+        public string Senha { get; set; }
     }
 }
