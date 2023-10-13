@@ -2,6 +2,7 @@
 using System.Data.Odbc;
 using OhMyDog_API.Model.Pets;
 using static OhMyDog_API.Model.Parameters;
+using static OhMyDog_API.Controllers.ConexaoController;
 using OhMyDog_API.Model.Clientes;
 using System.Reflection.PortableExecutable;
 
@@ -20,9 +21,7 @@ namespace OhMyDog_API.Controllers
                 DadosPets pet;
                 List<DadosPets> pets = new List<DadosPets>();
 
-                string queryString = "SELECT * FROM pet";
-                OdbcCommand command = new OdbcCommand(queryString, connection);
-                OdbcDataReader reader = command.ExecuteReader();
+                OdbcDataReader reader = ExecutaQuery("SELECT * FROM pet");
 
                 while (reader.Read())                
                     pets.Add(new DadosPets
@@ -53,9 +52,7 @@ namespace OhMyDog_API.Controllers
                 if (pet == null)
                     return BadRequest();
 
-                string queryString = $"INSERT INTO pet (codPet, Sexo, Cor, Nome, Especie, codCliente) VALUES ('{pet.codPet}', '{pet.Sexo}', '{pet.Cor}', '{pet.Nome}', '{pet.Especie}', '{pet.codCliente}')";
-                OdbcCommand command = new OdbcCommand(queryString, connection);
-                command.ExecuteReader();
+                ExecutaQuery($"INSERT INTO pet (codPet, Sexo, Cor, Nome, Especie, codCliente) VALUES ('{pet.codPet}', '{pet.Sexo}', '{pet.Cor}', '{pet.Nome}', '{pet.Especie}', '{pet.codCliente}')");                
 
                 return Ok();
             }
@@ -72,15 +69,13 @@ namespace OhMyDog_API.Controllers
             try
             {
                 string queryString = $"SELECT codPet FROM Pet WHERE codPet = '{codPet}'";
-                OdbcCommand command = new OdbcCommand(queryString, connection);
-                OdbcDataReader reader = command.ExecuteReader();
+                OdbcDataReader reader = ExecutaQuery(queryString);
 
                 if (!reader.Read())
                     return BadRequest("Pet não encontrado!");
 
                 queryString = $"DELETE FROM Pet WHERE codPet ='{codPet}'";
-                command = new OdbcCommand(queryString, connection);
-                command.ExecuteReader();
+                ExecutaQuery(queryString);
 
                 return Ok();
             }
@@ -101,8 +96,7 @@ namespace OhMyDog_API.Controllers
                     return BadRequest();
 
                 string queryString = $"SELECT codPet FROM Pet WHERE codPet = '{pet.codPet}'";
-                OdbcCommand command = new OdbcCommand(queryString, connection);
-                OdbcDataReader reader = command.ExecuteReader();
+                var reader = ExecutaQuery(queryString);
 
                 if (!reader.Read())
                     return BadRequest("Pet não encontrado!");
@@ -113,8 +107,7 @@ namespace OhMyDog_API.Controllers
                     $"Nome = '{pet.Nome}', " +
                     $"Especie = '{pet.Especie}' " +
                     $"WHERE codPet = '{pet.codPet}' ";
-                command = new OdbcCommand(queryString, connection);
-                command.ExecuteReader();
+                ExecutaQuery(queryString);
 
                 return Ok();
             }

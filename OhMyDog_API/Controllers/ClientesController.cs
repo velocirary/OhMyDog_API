@@ -20,9 +20,7 @@ namespace OhMyDog_API.Controllers
             {
                 var loginCliente = new DadosClientes();
 
-                string queryString = "SELECT * FROM Cliente";
-                OdbcCommand command = new OdbcCommand(queryString, connection);
-                OdbcDataReader reader = command.ExecuteReader();
+                OdbcDataReader reader = ExecutaQuery("SELECT * FROM Cliente");
 
                 while (reader.Read())
                 {
@@ -80,9 +78,7 @@ namespace OhMyDog_API.Controllers
                 if (cliente == null)
                     return BadRequest();
 
-                string queryString = $"INSERT INTO cliente (codCLiente, Nome) VALUES ('{cliente.CodCliente}', '{cliente.Nome}')";
-                OdbcCommand command = new OdbcCommand(queryString, connection);
-                command.ExecuteReader();
+                ExecutaQuery($"INSERT INTO cliente (codCLiente, Nome) VALUES ('{cliente.CodCliente}', '{cliente.Nome}')");
 
                 return Ok();
             }
@@ -91,8 +87,6 @@ namespace OhMyDog_API.Controllers
                 return StatusCode(500, ex.Message + "\n" + ex.StackTrace);
             }
         }
-
-
 
         [HttpPatch]
         [Route("AtualizarCliente")]
@@ -113,9 +107,7 @@ namespace OhMyDog_API.Controllers
                     $"Senha = '{cliente.Senha}', "+
                     $"Celular = '{cliente.Celular}' ";
 
-                OdbcCommand command = new OdbcCommand(queryString, connection);
-                command = new OdbcCommand(queryString, connection);
-                command.ExecuteReader();
+                ExecutaQuery(queryString);
 
                 return Ok();
             }
@@ -131,12 +123,12 @@ namespace OhMyDog_API.Controllers
         {
             try
             {
-                string queryString = $"SELECT codCliente FROM Pet WHERE codCliente = '{codCliente}'";
-                OdbcCommand command = new OdbcCommand(queryString, connection);
+                OdbcDataReader reader = ExecutaQuery($"SELECT codCliente FROM Cliente WHERE codCliente = '{codCliente}'");
 
-                queryString = $"DELETE FROM Cliente WHERE codCliente ='{codCliente}'";
-                command = new OdbcCommand(queryString, connection);
-                command.ExecuteReader();
+                if (!reader.Read())
+                    return BadRequest("Agendamento não encontrado!");
+
+                ExecutaQuery($"DELETE FROM Cliente WHERE codCliente ='{codCliente}'");
 
                 return Ok();
             }

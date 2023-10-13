@@ -20,9 +20,7 @@ namespace OhMyDog_API.Controllers
                 AgendamentoPetShop agendamento;
                 List<AgendamentoPetShop> agendamentosPet = new List<AgendamentoPetShop>();
 
-                string queryString = "SELECT * FROM Agendamento";
-                OdbcCommand command = new OdbcCommand(queryString, connection);
-                OdbcDataReader reader = command.ExecuteReader();
+                OdbcDataReader reader = ExecutaQuery("SELECT * FROM Agendamento");
 
                 while (reader.Read())
                     agendamentosPet.Add(new AgendamentoPetShop
@@ -48,9 +46,7 @@ namespace OhMyDog_API.Controllers
                 if (agendamento == null)
                     return BadRequest();
 
-                string queryString = $"INSERT INTO Agendamento (CodAgendamento, CodPet, DataAgendamento) VALUES ('{agendamento.CodAgendamento}', '{agendamento.CodPet}', '{agendamento.DataAgendamento}')";
-                OdbcCommand command = new OdbcCommand(queryString, connection);
-                command.ExecuteReader();
+                ExecutaQuery($"INSERT INTO Agendamento (CodAgendamento, CodPet, DataAgendamento) VALUES ('{agendamento.CodAgendamento}', '{agendamento.CodPet}', '{agendamento.DataAgendamento}')");
 
                 return Ok();
             }
@@ -67,15 +63,12 @@ namespace OhMyDog_API.Controllers
             try
             {
                 string queryString = $"SELECT codAgendamento FROM Agendamento WHERE codAgendamento = '{codAgendamento}'";
-                OdbcCommand command = new OdbcCommand(queryString, connection);
-                OdbcDataReader reader = command.ExecuteReader();
+                OdbcDataReader reader = ExecutaQuery(queryString);
 
                 if (!reader.Read())
                     return BadRequest("Agendamento não encontrado!");
 
-                queryString = $"DELETE FROM Agendamento WHERE codAgendamento ='{codAgendamento}'";
-                command = new OdbcCommand(queryString, connection);
-                command.ExecuteReader();
+                ExecutaQuery($"DELETE FROM Agendamento WHERE codAgendamento ='{codAgendamento}'");
 
                 return Ok();
             }
