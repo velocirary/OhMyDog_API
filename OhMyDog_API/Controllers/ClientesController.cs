@@ -13,8 +13,8 @@ namespace OhMyDog_API.Controllers
     public class ClientesController : ControllerBase
     {
         [HttpGet]
-        [Route("RetornarInformacoesBasicas")]
-        public async Task<IActionResult> GetInformacoesBasicas()
+        [Route("TodosClientes")]
+        public async Task<IActionResult> GetTodosClientes()
         {
             try
             {
@@ -46,6 +46,43 @@ namespace OhMyDog_API.Controllers
             }
         }
 
+        [HttpGet]
+        [Route("Cliente/{codCliente}")]
+        public async Task<IActionResult> RetornarCliente([FromRoute] string codCliente)
+        {
+            try
+            {
+                var loginCliente = new DadosClientes();
+
+                OdbcDataReader reader = ExecutaQuery($"SELECT * FROM Cliente WHERE codCliente = '{codCliente}'");
+
+                if (reader.Read())
+                {
+                    loginCliente.CodCliente = reader["codCliente"].ToString();
+                    loginCliente.Nome = reader["Nome"].ToString();
+                    loginCliente.CPF = reader["CPF"].ToString();
+                    loginCliente.DataNasc = Convert.ToDateTime(reader["DataNascimento"]);
+                    loginCliente.CEP = reader["CEP"].ToString();
+                    loginCliente.Logradouro = reader["Logradouro"].ToString();
+                    loginCliente.Bairro = reader["Bairro"].ToString();
+                    loginCliente.Municipio = reader["Municipio"].ToString();
+                    loginCliente.Estado = reader["Estado"].ToString();
+                    loginCliente.Email = reader["Email"].ToString();
+                    loginCliente.Senha = reader["Senha"].ToString();
+                    loginCliente.Celular = reader["Celular"].ToString();
+
+                    return Ok(loginCliente);
+                }
+                else                
+                    return StatusCode(204, "Usuário inexistente");
+
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message + "\n" + ex.StackTrace);
+            }
+        }
+
         [HttpPost]
         [Route("LoginCliente")]
         public async Task<IActionResult> PostLogarCliente([FromBody] LoginCliente login)
@@ -61,7 +98,7 @@ namespace OhMyDog_API.Controllers
                     return Ok("{\r\n  \"codCliente\":" + reader["codCliente"].ToString() + "\r\n}");
                 }
                 else
-                    return NotFound();
+                    return StatusCode(204, "Credenciais inválidas");
             }
             catch (Exception ex)
             {
