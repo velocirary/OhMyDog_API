@@ -1,4 +1,5 @@
-﻿using System.Data.Odbc;
+﻿using System.Data;
+using System.Data.Odbc;
 
 namespace OhMyDog_API.Controllers
 {
@@ -11,6 +12,8 @@ namespace OhMyDog_API.Controllers
                 "Database=Oh_My_Dog;" +
                 "Trusted_Connection=yes;";
 
+        internal static void Conectar()
+        {
             OdbcConnection conn = new OdbcConnection(connectionString);
 
             try
@@ -24,17 +27,36 @@ namespace OhMyDog_API.Controllers
             }
         }
     
-        public static OdbcDataReader ExecutaQuery(string query)
+        //public static OdbcDataReader ExecutaQuery(string query)
+        //{
+        //    OdbcDataReader result = null;
+
+        //    if (Model.Parameters.connection.State == System.Data.ConnectionState.Open) Model.Parameters.connection.Close();
+
+        //    Model.Parameters.connection.Open();
+
+        //    OdbcCommand command = new(query, Model.Parameters.connection);
+
+        //    result = command.ExecuteReader();
+
+        //    return result;
+        //}
+
+        public static DataTable ExecutaQuery(string query)
         {
-            if (Model.Parameters.connection.State == System.Data.ConnectionState.Open) Model.Parameters.connection.Close();
-
-            Model.Parameters.connection.Open();
-
-            OdbcCommand command = new(query, Model.Parameters.connection);
-
-            var result = command.ExecuteReader();
-
-            return result;
+            DataTable table = new DataTable();
+            using (OdbcConnection conn = new(connectionString))
+            {
+                conn.Open();
+                using (OdbcCommand cmd = new(query, conn))
+                {
+                    using (OdbcDataReader rdr = cmd.ExecuteReader())
+                    {
+                        table.Load(rdr);
+                    }
+                }
+            }
+            return table;
         }
     }
 }
