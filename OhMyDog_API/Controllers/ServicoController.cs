@@ -4,6 +4,7 @@ using OhMyDog_API.Model.Servicos;
 using System.Data.Odbc;
 using static OhMyDog_API.Model.Parameters;
 using static OhMyDog_API.Controllers.ConexaoController;
+using System.Data;
 
 namespace OhMyDog_API.Controllers
 {
@@ -21,10 +22,10 @@ namespace OhMyDog_API.Controllers
 
                 var reader = ExecutaQuery("SELECT * FROM Servico");
 
-                while (reader.Read())
+                foreach (DataRow row in reader.Rows)
                 {
-                    servicosPrestados.codServico = (int)reader["codServico"];
-                    servicosPrestados.Nome = reader["Nome"].ToString();
+                    servicosPrestados.codServico = (int)row["codServico"];
+                    servicosPrestados.Nome = row["Nome"].ToString();
                 }
 
                 return Ok(servicosPrestados);
@@ -57,9 +58,9 @@ namespace OhMyDog_API.Controllers
         {
             try
             {
-                OdbcDataReader reader = ExecutaQuery($"SELECT codServico FROM Servico WHERE codPet = '{codServico}'");
+                var table = ExecutaQuery($"SELECT codServico FROM Servico WHERE codPet = '{codServico}'");
 
-                if (!reader.Read())
+                if (table.Rows.Count == 0)
                     return BadRequest("Servico não encontrado!");
 
                 ExecutaQuery($"DELETE FROM Servico WHERE codPet ='{codServico}'");
