@@ -4,6 +4,8 @@ using static OhMyDog_API.Model.Parameters;
 using System.Web;
 using OhMyDog_API.Model.Clientes;
 using OhMyDog_API.Model.Pets;
+using static OhMyDog_API.Controllers.ConexaoController;
+using System.Data;
 
 namespace OhMyDog_API.Controllers
 {
@@ -12,21 +14,30 @@ namespace OhMyDog_API.Controllers
     public class ClientesController : ControllerBase
     {
         [HttpGet]
-        [Route("RetornarInformacoesBasicas")]
-        public async Task<IActionResult> GetInformacoesBasicas()
+        [Route("TodosClientes")]
+        public async Task<IActionResult> GetTodosClientes()
         {
             try
             {
-                var loginCliente = new LoginCliente();
+                var loginCliente = new DadosClientes();
 
-                string queryString = "SELECT * FROM Cliente";
-                OdbcCommand command = new OdbcCommand(queryString, connection);
-                OdbcDataReader reader = command.ExecuteReader();
+                var table = ExecutaQuery("SELECT * FROM Cliente");
 
-                while (reader.Read())
+                foreach (DataRow reader in table.Rows)
                 {
                     loginCliente.CodCliente = reader["codCliente"].ToString();
                     loginCliente.Nome = reader["Nome"].ToString();
+                    loginCliente.CPF = reader["CPF"].ToString();
+                    loginCliente.DataNasc = Convert.ToDateTime(reader["DataNascimento"]).ToString("dd/MM/yyyy");
+                    loginCliente.CEP = reader["CEP"].ToString();
+                    loginCliente.Logradouro = reader["Logradouro"].ToString();
+                    loginCliente.Numero = reader["Numero"].ToString();
+                    loginCliente.Bairro = reader["Bairro"].ToString();
+                    loginCliente.Municipio = reader["Municipio"].ToString();
+                    loginCliente.Estado = reader["Estado"].ToString();
+                    loginCliente.Email = reader["Email"].ToString();
+                    loginCliente.Senha = reader["Senha"].ToString();
+                    loginCliente.Celular = reader["Celular"].ToString();
                 }
 
                 return Ok(loginCliente);
@@ -37,18 +48,76 @@ namespace OhMyDog_API.Controllers
             }
         }
 
+        [HttpGet]
+        [Route("Cliente/{codCliente}")]
+        public async Task<IActionResult> RetornarCliente([FromRoute] string codCliente)
+        {
+            try
+            {
+                var loginCliente = new DadosClientes();
+
+                var table = ExecutaQuery($"SELECT * FROM Cliente WHERE codCliente = '{codCliente}'");
+                
+                foreach (DataRow reader in table.Rows)
+                {
+                    loginCliente.CodCliente = reader["codCliente"].ToString();
+                    loginCliente.Nome = reader["Nome"].ToString();
+                    loginCliente.CPF = reader["CPF"].ToString();
+                    loginCliente.DataNasc = Convert.ToDateTime(reader["DataNascimento"]).ToString("dd/MM/yyyy");
+                    loginCliente.CEP = reader["CEP"].ToString();
+                    loginCliente.Logradouro = reader["Logradouro"].ToString();
+                    loginCliente.Numero = reader["Numero"].ToString();
+                    loginCliente.Bairro = reader["Bairro"].ToString();
+                    loginCliente.Municipio = reader["Municipio"].ToString();
+                    loginCliente.Estado = reader["Estado"].ToString();
+                    loginCliente.Email = reader["Email"].ToString();
+                    loginCliente.Senha = reader["Senha"].ToString();
+                    loginCliente.Celular = reader["Celular"].ToString();
+
+                    return Ok(loginCliente);
+                }
+
+                return StatusCode(204, "Usuário inexistente");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message + "\n" + ex.StackTrace);
+            }
+        }
+
+        [HttpPost]
+        [Route("LoginCliente")]
+        public async Task<IActionResult> PostLogarCliente([FromBody] LoginCliente login)
+        {
+            try
+            {
+                var loginCliente = new DadosClientes();
+
+                var table = ExecutaQuery($"SELECT * FROM Cliente WHERE Email = '{login.Email}' and Senha = '{login.Senha}'");
+
+                if (table.Rows.Count > 0)
+                {
+                    return Ok($"{{\r\n  \"codCliente\":\"{table.Rows[0]["codCliente"]}\",\r\n  \"nome\":\"{table.Rows[0]["Nome"]}\"\r\n}}");
+                }
+                else
+                    return StatusCode(204, "Credenciais inválidas");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message + "\n" + ex.StackTrace);
+            }
+        }
+
         [HttpPost]
         [Route("InserirNovoCliente")]
-        public async Task<IActionResult> PostNovoCliente([FromBody] LoginCliente cliente)
+        public async Task<IActionResult> PostNovoCliente([FromBody] DadosClientes cliente)
         {
             try
             {
                 if (cliente == null)
                     return BadRequest();
 
-                string queryString = $"INSERT INTO cliente (codCLiente, Nome) VALUES ('{cliente.CodCliente}', '{cliente.Nome}')";
-                OdbcCommand command = new OdbcCommand(queryString, connection);
-                command.ExecuteReader();
+                ExecutaQuery($"INSERT INTO cliente (codCLiente, Nome) VALUES ('{cliente.CodCliente}', '{cliente.Nome}')");
 
                 return Ok();
             }
@@ -60,7 +129,7 @@ namespace OhMyDog_API.Controllers
 
         [HttpPatch]
         [Route("AtualizarCliente")]
-        public async Task<IActionResult> AtualizarCliente([FromBody] LoginCliente cliente)
+        public async Task<IActionResult> AtualizarCliente([FromBody] AtualizarCliente cliente)
         {
             try
             {
@@ -70,16 +139,13 @@ namespace OhMyDog_API.Controllers
                     $"DataNascimento = '{cliente.DataNasc}', " +
                     $"CEP = '{cliente.CEP}', " +
                     $"Logradouro = '{cliente.Logradouro}', " +
+                    $"Numero = '{cliente.Numero}', " +
                     $"Bairro = '{cliente.Bairro}', "+
                     $"Municipio = '{cliente.Municipio}', "+
-                    $"Estado = '{cliente.Estado}', "+
-                    $"Email = '{cliente.Email}', " +
-                    $"Senha = '{cliente.Senha}', "+
-                    $"Celular = '{cliente.Celular}' ";
+                    $"Estado = '{cliente.Estado}' "+
+                    $"WHERE CodCliente = '{cliente.CodCliente}'";
 
-                OdbcCommand command = new OdbcCommand(queryString, connection);
-                command = new OdbcCommand(queryString, connection);
-                command.ExecuteReader();
+                ExecutaQuery(queryString);
 
                 return Ok();
             }
@@ -95,12 +161,12 @@ namespace OhMyDog_API.Controllers
         {
             try
             {
-                string queryString = $"SELECT codCliente FROM Pet WHERE codCliente = '{codCliente}'";
-                OdbcCommand command = new OdbcCommand(queryString, connection);
+                var table = ExecutaQuery($"SELECT codCliente FROM Cliente WHERE codCliente = '{codCliente}'");
 
-                queryString = $"DELETE FROM Cliente WHERE codPet ='{codCliente}'";
-                command = new OdbcCommand(queryString, connection);
-                command.ExecuteReader();
+                if (table.Rows.Count == 0)
+                    return BadRequest("Agendamento não encontrado!");
+
+                ExecutaQuery($"DELETE FROM Cliente WHERE codCliente ='{codCliente}'");
 
                 return Ok();
             }

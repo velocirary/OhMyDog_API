@@ -3,6 +3,8 @@ using OhMyDog_API.Model.Clientes;
 using OhMyDog_API.Model.Servicos;
 using System.Data.Odbc;
 using static OhMyDog_API.Model.Parameters;
+using static OhMyDog_API.Controllers.ConexaoController;
+using System.Data;
 
 namespace OhMyDog_API.Controllers
 {
@@ -18,14 +20,12 @@ namespace OhMyDog_API.Controllers
             {
                 var servicosPrestados = new ServicoPrestados();
 
-                string queryString = "SELECT * FROM Servico";
-                OdbcCommand command = new OdbcCommand(queryString, connection);
-                OdbcDataReader reader = command.ExecuteReader();
+                var reader = ExecutaQuery("SELECT * FROM Servico");
 
-                while (reader.Read())
+                foreach (DataRow row in reader.Rows)
                 {
-                    servicosPrestados.codServico = (int)reader["codServico"];
-                    servicosPrestados.Nome = reader["Nome"].ToString();
+                    servicosPrestados.codServico = (int)row["codServico"];
+                    servicosPrestados.Nome = row["Nome"].ToString();
                 }
 
                 return Ok(servicosPrestados);
@@ -42,10 +42,8 @@ namespace OhMyDog_API.Controllers
         {
             try
             {
-                string queryString = $"INSERT INTO Servico (codServico, Nome) VALUES ('{servicoPrestados.codServico}', '{servicoPrestados.Nome}')";
-                OdbcCommand command = new OdbcCommand(queryString, connection);
-                command.ExecuteReader();
-
+                ExecutaQuery($"INSERT INTO Servico (codServico, Nome) VALUES ('{servicoPrestados.codServico}', '{servicoPrestados.Nome}')");
+                
                 return Ok();
             }
             catch (Exception ex)
@@ -60,16 +58,12 @@ namespace OhMyDog_API.Controllers
         {
             try
             {
-                string queryString = $"SELECT codServico FROM Servico WHERE codPet = '{codServico}'";
-                OdbcCommand command = new OdbcCommand(queryString, connection);
-                OdbcDataReader reader = command.ExecuteReader();
+                var table = ExecutaQuery($"SELECT codServico FROM Servico WHERE codPet = '{codServico}'");
 
-                if (!reader.Read())
+                if (table.Rows.Count == 0)
                     return BadRequest("Servico não encontrado!");
 
-                queryString = $"DELETE FROM Servico WHERE codPet ='{codServico}'";
-                command = new OdbcCommand(queryString, connection);
-                command.ExecuteReader();
+                ExecutaQuery($"DELETE FROM Servico WHERE codPet ='{codServico}'");
 
                 return Ok();
             }
@@ -89,9 +83,7 @@ namespace OhMyDog_API.Controllers
                     $"CodServico = '{servicoPrestados.codServico}', " +
                     $"Nome = '{servicoPrestados.Nome}' ";
 
-                OdbcCommand command = new OdbcCommand(queryString, connection);
-                command = new OdbcCommand(queryString, connection);
-                command.ExecuteReader();
+                ExecutaQuery(queryString);
 
                 return Ok();
             }
