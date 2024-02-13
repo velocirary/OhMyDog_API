@@ -5,9 +5,7 @@ namespace OhMyDog_API.Controllers
 {
     public static class ConexaoController
     {
-        internal static void Conectar()
-        {
-            string connectionString = "Driver={SQL Server};" +
+        private const string connectionString = "Driver={SQL Server};" +
                 "Server=LAPTOP-HPM70D5A\\MSSQLSERVER17;" +
                 "Database=Oh_My_Dog;" +
                 "Trusted_Connection=yes;";
