@@ -4,6 +4,7 @@ using OhMyDog_API.Model.Agendamento;
 using System.Data.Odbc;
 using static OhMyDog_API.Model.Parameters;
 using static OhMyDog_API.Controllers.ConexaoController;
+using System.Data;
 
 namespace OhMyDog_API.Controllers
 {
@@ -20,15 +21,17 @@ namespace OhMyDog_API.Controllers
                 AgendamentoPetShop agendamento;
                 List<AgendamentoPetShop> agendamentosPet = new List<AgendamentoPetShop>();
 
-                OdbcDataReader reader = ExecutaQuery("SELECT * FROM Agendamento");
+                var table = ExecutaQuery("SELECT * FROM Agendamento");
 
-                while (reader.Read())
+                foreach (DataRow reader in table.Rows)
+                {
                     agendamentosPet.Add(new AgendamentoPetShop
                     {
                         CodAgendamento = reader["CodAgendamento"].ToString(),
                         CodPet = reader["CodPet"].ToString(),
                         DataAgendamento = DateTime.Parse(reader["DataAgendamento"].ToString())
-                    });         
+                    });
+                }
                 return Ok(agendamentosPet);
             }
             catch (Exception ex)
@@ -63,9 +66,9 @@ namespace OhMyDog_API.Controllers
             try
             {
                 string queryString = $"SELECT codAgendamento FROM Agendamento WHERE codAgendamento = '{codAgendamento}'";
-                OdbcDataReader reader = ExecutaQuery(queryString);
+                var table = ExecutaQuery(queryString);
 
-                if (!reader.Read())
+                if (table.Rows.Count == 0)
                     return BadRequest("Agendamento não encontrado!");
 
                 ExecutaQuery($"DELETE FROM Agendamento WHERE codAgendamento ='{codAgendamento}'");
@@ -88,9 +91,9 @@ namespace OhMyDog_API.Controllers
                 if (agendamento == null)
                     return BadRequest();
 
-                OdbcDataReader reader = ExecutaQuery($"SELECT codAgendamento FROM Agendamento WHERE codAgendamento = '{agendamento.CodAgendamento}'");
+                var table = ExecutaQuery($"SELECT codAgendamento FROM Agendamento WHERE codAgendamento = '{agendamento.CodAgendamento}'");
 
-                if (!reader.Read())
+                if (table.Rows.Count == 0)
                     return BadRequest("Agendamento não encontrado!");
 
                 ExecutaQuery($"UPDATE Agendamento SET " +

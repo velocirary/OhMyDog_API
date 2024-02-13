@@ -5,6 +5,7 @@ using System.Web;
 using OhMyDog_API.Model.Clientes;
 using OhMyDog_API.Model.Pets;
 using static OhMyDog_API.Controllers.ConexaoController;
+using System.Data;
 
 namespace OhMyDog_API.Controllers
 {
@@ -20,16 +21,17 @@ namespace OhMyDog_API.Controllers
             {
                 var loginCliente = new DadosClientes();
 
-                OdbcDataReader reader = ExecutaQuery("SELECT * FROM Cliente");
+                var table = ExecutaQuery("SELECT * FROM Cliente");
 
-                while (reader.Read())
+                foreach (DataRow reader in table.Rows)
                 {
                     loginCliente.CodCliente = reader["codCliente"].ToString();
                     loginCliente.Nome = reader["Nome"].ToString();
                     loginCliente.CPF = reader["CPF"].ToString();
-                    loginCliente.DataNasc = Convert.ToDateTime( reader["DataNascimento"]);
+                    loginCliente.DataNasc = Convert.ToDateTime(reader["DataNascimento"]).ToString("dd/MM/yyyy");
                     loginCliente.CEP = reader["CEP"].ToString();
                     loginCliente.Logradouro = reader["Logradouro"].ToString();
+                    loginCliente.Numero = reader["Numero"].ToString();
                     loginCliente.Bairro = reader["Bairro"].ToString();
                     loginCliente.Municipio = reader["Municipio"].ToString();
                     loginCliente.Estado = reader["Estado"].ToString();
@@ -54,16 +56,17 @@ namespace OhMyDog_API.Controllers
             {
                 var loginCliente = new DadosClientes();
 
-                OdbcDataReader reader = ExecutaQuery($"SELECT * FROM Cliente WHERE codCliente = '{codCliente}'");
-
-                if (reader.Read())
+                var table = ExecutaQuery($"SELECT * FROM Cliente WHERE codCliente = '{codCliente}'");
+                
+                foreach (DataRow reader in table.Rows)
                 {
                     loginCliente.CodCliente = reader["codCliente"].ToString();
                     loginCliente.Nome = reader["Nome"].ToString();
                     loginCliente.CPF = reader["CPF"].ToString();
-                    loginCliente.DataNasc = Convert.ToDateTime(reader["DataNascimento"]);
+                    loginCliente.DataNasc = Convert.ToDateTime(reader["DataNascimento"]).ToString("dd/MM/yyyy");
                     loginCliente.CEP = reader["CEP"].ToString();
                     loginCliente.Logradouro = reader["Logradouro"].ToString();
+                    loginCliente.Numero = reader["Numero"].ToString();
                     loginCliente.Bairro = reader["Bairro"].ToString();
                     loginCliente.Municipio = reader["Municipio"].ToString();
                     loginCliente.Estado = reader["Estado"].ToString();
@@ -73,9 +76,8 @@ namespace OhMyDog_API.Controllers
 
                     return Ok(loginCliente);
                 }
-                else                
-                    return StatusCode(204, "Usuário inexistente");
 
+                return StatusCode(204, "Usuário inexistente");
             }
             catch (Exception ex)
             {
@@ -91,11 +93,11 @@ namespace OhMyDog_API.Controllers
             {
                 var loginCliente = new DadosClientes();
 
-                OdbcDataReader reader = ExecutaQuery($"SELECT * FROM Cliente WHERE Email = '{login.Email}' and Senha = '{login.Senha}'");
+                var table = ExecutaQuery($"SELECT * FROM Cliente WHERE Email = '{login.Email}' and Senha = '{login.Senha}'");
 
-                if (reader.Read())
+                if (table.Rows.Count > 0)
                 {
-                    return Ok("{\r\n  \"codCliente\":" + reader["codCliente"].ToString() + "\r\n}");
+                    return Ok($"{{\r\n  \"codCliente\":\"{table.Rows[0]["codCliente"]}\",\r\n  \"nome\":\"{table.Rows[0]["Nome"]}\"\r\n}}");
                 }
                 else
                     return StatusCode(204, "Credenciais inválidas");
@@ -127,7 +129,7 @@ namespace OhMyDog_API.Controllers
 
         [HttpPatch]
         [Route("AtualizarCliente")]
-        public async Task<IActionResult> AtualizarCliente([FromBody] DadosClientes cliente)
+        public async Task<IActionResult> AtualizarCliente([FromBody] AtualizarCliente cliente)
         {
             try
             {
@@ -137,12 +139,11 @@ namespace OhMyDog_API.Controllers
                     $"DataNascimento = '{cliente.DataNasc}', " +
                     $"CEP = '{cliente.CEP}', " +
                     $"Logradouro = '{cliente.Logradouro}', " +
+                    $"Numero = '{cliente.Numero}', " +
                     $"Bairro = '{cliente.Bairro}', "+
                     $"Municipio = '{cliente.Municipio}', "+
-                    $"Estado = '{cliente.Estado}', "+
-                    $"Email = '{cliente.Email}', " +
-                    $"Senha = '{cliente.Senha}', "+
-                    $"Celular = '{cliente.Celular}' ";
+                    $"Estado = '{cliente.Estado}' "+
+                    $"WHERE CodCliente = '{cliente.CodCliente}'";
 
                 ExecutaQuery(queryString);
 
@@ -160,9 +161,9 @@ namespace OhMyDog_API.Controllers
         {
             try
             {
-                OdbcDataReader reader = ExecutaQuery($"SELECT codCliente FROM Cliente WHERE codCliente = '{codCliente}'");
+                var table = ExecutaQuery($"SELECT codCliente FROM Cliente WHERE codCliente = '{codCliente}'");
 
-                if (!reader.Read())
+                if (table.Rows.Count == 0)
                     return BadRequest("Agendamento não encontrado!");
 
                 ExecutaQuery($"DELETE FROM Cliente WHERE codCliente ='{codCliente}'");
