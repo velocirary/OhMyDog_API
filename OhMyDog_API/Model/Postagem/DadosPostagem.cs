@@ -2,7 +2,7 @@
 {
     public class DadosPostagem
     {
-        public string CodPostagem { get; set; }
+        public string IdPostagem { get; set; }
 
         public string Titulo { get; set; }
 
@@ -23,7 +23,7 @@
 
     public class AtualizaPostagem
     {
-        public string CodPostagem { get; }
+        public string IdPostagem { get; }
 
         public string Titulo { get; set; }
 
@@ -40,7 +40,7 @@
 
     public class AprovaPostagem
     {
-        public string CodPostagem { get; }
+        public string IdPostagem { get; }
 
         public string Status { get; set; }
     }
