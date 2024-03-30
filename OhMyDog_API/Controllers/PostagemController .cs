@@ -24,7 +24,7 @@ namespace OhMyDog_API.Controllers
                     listPostagens.Add(
                         item: new DadosPostagem
                         {
-                            CodPostagem = reader["codPostagem"].ToString(),
+                            IdPostagem = reader["IdPostagem"].ToString(),
                             Titulo = reader["Titulo"].ToString(),
                             Conteudo = reader["Conteudo"].ToString(),
                             DataPublicacao = Convert.ToDateTime(reader["DataPublicacao"]).ToString("dd/MM/yyyy"),
@@ -46,18 +46,18 @@ namespace OhMyDog_API.Controllers
         }
 
         [HttpGet]
-        [Route("Postagem/{codPostagem}")]
-        public async Task<IActionResult> RetornarPostagem([FromRoute] string codPostagem)
+        [Route("Postagem/{idPostagem}")]
+        public async Task<IActionResult> RetornarPostagem([FromRoute] string idPostagem)
         {
             try
             {
                 var infosPostagem = new DadosPostagem();
 
-                var table = ExecutaQuery($"SELECT * FROM Postagem WHERE codPostagem = '{codPostagem}'");
+                var table = ExecutaQuery($"SELECT * FROM Postagem WHERE idPostagem = '{idPostagem}'");
                 
                 foreach (DataRow reader in table.Rows)
                 {
-                    infosPostagem.CodPostagem = reader["CodPostagem"].ToString();
+                    infosPostagem.IdPostagem = reader["IdPostagem"].ToString();
                     infosPostagem.Titulo = reader["Titulo"].ToString();
                     infosPostagem.Conteudo = reader["Conteudo"].ToString();
                     infosPostagem.DataPublicacao = Convert.ToDateTime(reader["DataPublicacao"]).ToString("dd/MM/yyyy");
@@ -119,7 +119,7 @@ namespace OhMyDog_API.Controllers
                                      $"Doacao = {postagem.Doacao}, " +
                                      $"ChavePix = '{postagem.ChavePix}', " +
                                      $"Status = '{postagem.Status}' " +
-                                     $"WHERE codPostagem = {postagem.CodPostagem}";
+                                     $"WHERE idPostagem = {postagem.IdPostagem}";
                 ExecutaQuery(queryString);
 
                 return Ok();
@@ -131,17 +131,17 @@ namespace OhMyDog_API.Controllers
         }
 
         [HttpDelete]
-        [Route("DeletarPostagem/{codPostagem}")]
-        public async Task<IActionResult> DeletarPostagem([FromRoute] string codPostagem)
+        [Route("DeletarPostagem/{idPostagem}")]
+        public async Task<IActionResult> DeletarPostagem([FromRoute] string idPostagem)
         {
             try
             {
-                var table = ExecutaQuery($"SELECT codPostagem FROM Postagem WHERE codPostagem = '{codPostagem}'");
+                var table = ExecutaQuery($"SELECT idPostagem FROM Postagem WHERE idPostagem = '{idPostagem}'");
 
                 if (table.Rows.Count == 0)
                     return BadRequest("Postagem não encontrada!");
 
-                ExecutaQuery($"UPDATE Postagem SET Status = 'N' WHERE codPostagem = '{codPostagem}'");
+                ExecutaQuery($"UPDATE Postagem SET Status = 'N' WHERE idPostagem = '{idPostagem}'");
 
                 return Ok();
             }
