@@ -1,18 +1,16 @@
-﻿using System.Data;
-using System.Data.Odbc;
+﻿using OhMyDog_API.Model;
+using System.Data;
 using System.Data.SqlClient;
 
 namespace OhMyDog_API.Controllers
 {
     public static class ConexaoController
     {
-
-        private const string connectionString =
-            "InsiraSuaConexaoBD";
+        private static string connectionString = Parameters.stringConexao;            
         internal static void Conectar()
         {
             try
-            {
+            {                            
                 using (SqlConnection connection = new SqlConnection(connectionString))
                 {
                     try
@@ -48,5 +46,7 @@ namespace OhMyDog_API.Controllers
             }
             return table;
         }
+
+
     }
 }
