@@ -1,4 +1,6 @@
-using OhMyDog_API.Controllers;
+using static OhMyDog_API.Controllers.Environment;
+using static OhMyDog_API.Controllers.ConexaoController;
+using OhMyDog_API.Model;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,7 +22,8 @@ var app = builder.Build();
 
 try
 {
-    ConexaoController.Conectar();
+    LoadEnvironment();
+    Conectar();
 }
 catch (Exception ex)
 {
