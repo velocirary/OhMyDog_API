@@ -4,6 +4,8 @@
     {
         public string IdDoacao { get; set; }
 
+        public string IdAdminstrador { get; set; }
+
         public string IdUsuarioDoador { get; set; }       
 
         public string IdPostagem { get; set; }

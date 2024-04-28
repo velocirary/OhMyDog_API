@@ -78,6 +78,7 @@ namespace OhMyDog_API.Controllers
                     loginUsuario.Email = reader["Email"].ToString();
                     loginUsuario.Senha = reader["Senha"].ToString();
                     loginUsuario.Celular = reader["Celular"].ToString();
+                    loginUsuario.Status = reader["Status"].ToString();
 
                     return Ok(loginUsuario);
                 }

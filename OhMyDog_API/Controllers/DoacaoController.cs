@@ -22,7 +22,9 @@ namespace OhMyDog_API.Controllers
 
                 foreach (DataRow reader in table.Rows)
                 {
-                    infosDoacao.IdDoacao = reader["IdDoacao"].ToString();
+                    infosDoacao.IdUsuarioDoador = reader[columnName: "IdUsuario"].ToString();                    
+                    infosDoacao.IdDoacao = reader[columnName: "IdDoacao"].ToString();                    
+                    infosDoacao.IdVoucher = reader[columnName: "IdVoucher"].ToString();                    
                     infosDoacao.ValorDoacao = reader["Valor"].ToString();
                     infosDoacao.Mensagem = reader["Mensagem"].ToString();
                     infosDoacao.ComprovantePix = reader["ComprovantePix"].ToString();
@@ -56,6 +58,8 @@ namespace OhMyDog_API.Controllers
                         item: new DadosDoacao
                         {
                             IdDoacao = reader["IdDoacao"].ToString(),
+                            IdPostagem = reader["IdPostagem"].ToString(),
+                            IdVoucher = reader["IdVoucher"].ToString(),
                             ValorDoacao = reader["Valor"].ToString(),
                             Mensagem = reader["Mensagem"].ToString(),
                             ComprovantePix = reader["ComprovantePix"].ToString(),
@@ -87,6 +91,8 @@ namespace OhMyDog_API.Controllers
                 foreach (DataRow reader in table.Rows)
                 {
                     infosDoacao.IdDoacao = reader["IdDoacao"].ToString();
+                    infosDoacao.IdPostagem = reader["IdPostagem"].ToString();
+                    infosDoacao.IdVoucher = reader["IdVoucher"].ToString();
                     infosDoacao.ValorDoacao = reader["Valor"].ToString();
                     infosDoacao.Mensagem = reader["Mensagem"].ToString();
                     infosDoacao.ComprovantePix = reader["ComprovantePix"].ToString();
@@ -114,7 +120,8 @@ namespace OhMyDog_API.Controllers
                 if (doacao == null)
                     return BadRequest();
 
-                ExecutaQuery(query: $"INSERT INTO Doacao (Valor, Mensagem, IdUsuario, IdVoucher, IdPostagem, ComprovantePix, DtDoacao, Status) VALUES (" +
+                ExecutaQuery(query: $"INSERT INTO Doacao (IdAdminstrador, Valor, Mensagem, IdUsuario, IdVoucher, IdPostagem, ComprovantePix, DtDoacao, Status) VALUES (" +
+                                    $"'{doacao.IdAdminstrador}', " +
                                     $"'{doacao.ValorDoacao}', " +
                                     $"'{doacao.Mensagem}', " +
                                     $"'{doacao.IdUsuarioDoador}', " +

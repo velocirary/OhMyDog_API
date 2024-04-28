@@ -28,9 +28,12 @@ namespace OhMyDog_API.Controllers
                             Titulo = reader["Titulo"].ToString(),
                             Conteudo = reader["Conteudo"].ToString(),
                             DtPublicacao = Convert.ToDateTime(reader["DtPublicacao"]).ToString("dd/MM/yyyy"),
+                            DtAprovacao = Convert.ToDateTime(reader["DtAprovacao"]).ToString("dd/MM/yyyy"),
                             IdUsuario = reader["IdUsuario"].ToString(),
+                            IdAdminstrador = reader["IdAdminstrador"].ToString(),
                             Imagem = reader["Imagem"].ToString(),
                             ChavePix = reader["ChavePix"].ToString(),
+                            TipoDoacao = reader["TipoDoacao"].ToString(),
                             Status = reader["Status"].ToString()
                         }
                     );
@@ -57,12 +60,15 @@ namespace OhMyDog_API.Controllers
                 foreach (DataRow reader in table.Rows)
                 {
                     infosPostagem.IdPostagem = reader["IdPostagem"].ToString();
+                    infosPostagem.IdAdminstrador = reader["IdAdminstrador"].ToString();
                     infosPostagem.Titulo = reader["Titulo"].ToString();
                     infosPostagem.Conteudo = reader["Conteudo"].ToString();
                     infosPostagem.DtPublicacao = Convert.ToDateTime(reader["DtPublicacao"]).ToString("dd/MM/yyyy");
+                    infosPostagem.DtAprovacao = Convert.ToDateTime(reader["DtAprovacao"]).ToString("dd/MM/yyyy");
                     infosPostagem.IdUsuario = reader["IdUsuario"].ToString();
                     infosPostagem.Imagem = reader["Imagem"].ToString();
                     infosPostagem.ChavePix = reader["ChavePix"].ToString();
+                    infosPostagem.Status = reader["Status"].ToString();
 
                     return Ok(infosPostagem);
                 }
