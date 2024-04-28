@@ -27,10 +27,9 @@ namespace OhMyDog_API.Controllers
                             IdPostagem = reader["IdPostagem"].ToString(),
                             Titulo = reader["Titulo"].ToString(),
                             Conteudo = reader["Conteudo"].ToString(),
-                            DataPublicacao = Convert.ToDateTime(reader["DataPublicacao"]).ToString("dd/MM/yyyy"),
-                            idUsuario = reader["Conteudo"].ToString(),
-                            Foto = reader["Foto"].ToString(),
-                            Doacao = reader["Doacao"].ToString(),
+                            DtPublicacao = Convert.ToDateTime(reader["DtPublicacao"]).ToString("dd/MM/yyyy"),
+                            IdUsuario = reader["IdUsuario"].ToString(),
+                            Imagem = reader["Imagem"].ToString(),
                             ChavePix = reader["ChavePix"].ToString(),
                             Status = reader["Status"].ToString()
                         }
@@ -54,16 +53,15 @@ namespace OhMyDog_API.Controllers
                 var infosPostagem = new DadosPostagem();
 
                 var table = ExecutaQuery($"SELECT * FROM Postagem WHERE idPostagem = '{idPostagem}'");
-                
+
                 foreach (DataRow reader in table.Rows)
                 {
                     infosPostagem.IdPostagem = reader["IdPostagem"].ToString();
                     infosPostagem.Titulo = reader["Titulo"].ToString();
                     infosPostagem.Conteudo = reader["Conteudo"].ToString();
-                    infosPostagem.DataPublicacao = Convert.ToDateTime(reader["DataPublicacao"]).ToString("dd/MM/yyyy");
-                    infosPostagem.idUsuario = reader["Conteudo"].ToString();
-                    infosPostagem.Foto = reader["Foto"].ToString();
-                    infosPostagem.Doacao = reader["Doacao"].ToString();
+                    infosPostagem.DtPublicacao = Convert.ToDateTime(reader["DtPublicacao"]).ToString("dd/MM/yyyy");
+                    infosPostagem.IdUsuario = reader["IdUsuario"].ToString();
+                    infosPostagem.Imagem = reader["Imagem"].ToString();
                     infosPostagem.ChavePix = reader["ChavePix"].ToString();
 
                     return Ok(infosPostagem);
@@ -86,13 +84,15 @@ namespace OhMyDog_API.Controllers
                 if (postagem == null)
                     return BadRequest();
 
-                ExecutaQuery(query: $"INSERT INTO Postagem (Titulo, Conteudo, DataPublicacao, idUsuario, Foto, Doacao, ChavePix, Status) VALUES (" +
+                ExecutaQuery(query: $"INSERT INTO Postagem (Titulo, Conteudo, DtPublicacao, DtAprovacao, idUsuario, IdAdminstrador, Imagem, TipoDoacao, ChavePix, Status) VALUES (" +
                                     $"'{postagem.Titulo}', " +
                                     $"'{postagem.Conteudo}', " +
-                                    $"'{Convert.ToDateTime(postagem.DataPublicacao).ToString("yyyyMMdd")}', " +
-                                    $"'{postagem.idUsuario}', " +
-                                    $"'{postagem.Foto}', " +
-                                    $"{1}, " +
+                                    $"'{Convert.ToDateTime(postagem.DtPublicacao).ToString("yyyyMMdd")}', " +
+                                    $"'{null}', " +
+                                    $"'{postagem.IdUsuario}', " +
+                                    $"'{postagem.IdAdminstrador}', " +
+                                    $"'{postagem.Imagem}', " +
+                                    $"'{postagem.TipoDoacao}', " +
                                     $"'{postagem.ChavePix}', " +
                                     $"'{postagem.Status}')");
 
@@ -113,10 +113,9 @@ namespace OhMyDog_API.Controllers
                 string queryString = $"UPDATE Postagem SET " +
                                      $"Titulo = '{postagem.Titulo}', " +
                                      $"Conteudo = '{postagem.Conteudo}', " +
-                                     $"DataPublicacao = '{Convert.ToDateTime(postagem.DataPublicacao).ToString("yyyyMMdd")}', " +
-                                     $"idUsuario = {postagem.idUsuario}, " +
-                                     $"Foto = '{postagem.Foto}', " +
-                                     $"Doacao = {postagem.Doacao}, " +
+                                     $"DtAprovacao = '{Convert.ToDateTime(postagem.DtAprovacao).ToString("yyyyMMdd")}', " +
+                                     $"idUsuario = {postagem.IdUsuario}, " +
+                                     $"Imagem = '{postagem.Imagem}', " +
                                      $"ChavePix = '{postagem.ChavePix}', " +
                                      $"Status = '{postagem.Status}' " +
                                      $"WHERE idPostagem = {postagem.IdPostagem}";

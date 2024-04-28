@@ -30,7 +30,7 @@ namespace OhMyDog_API.Controllers
                             idUsuario = reader["idUsuario"].ToString(),
                             Nome = reader["Nome"].ToString(),
                             CPF = reader["CPF"].ToString(),
-                            DataNasc = Convert.ToDateTime(reader["DataNascimento"]).ToString("dd/MM/yyyy"),
+                            DtNascimento = Convert.ToDateTime(reader["DtNascimento"]).ToString("dd/MM/yyyy"),
                             CEP = reader["CEP"].ToString(),
                             Logradouro = reader["Logradouro"].ToString(),
                             Numero = reader["Numero"].ToString(),
@@ -68,7 +68,7 @@ namespace OhMyDog_API.Controllers
                     loginUsuario.idUsuario = reader["idUsuario"].ToString();
                     loginUsuario.Nome = reader["Nome"].ToString();
                     loginUsuario.CPF = reader["CPF"].ToString();
-                    loginUsuario.DataNasc = Convert.ToDateTime(reader["DataNascimento"]).ToString("dd/MM/yyyy");
+                    loginUsuario.DtNascimento = Convert.ToDateTime(reader["DtNascimento"]).ToString("dd/MM/yyyy");
                     loginUsuario.CEP = reader["CEP"].ToString();
                     loginUsuario.Logradouro = reader["Logradouro"].ToString();
                     loginUsuario.Numero = reader["Numero"].ToString();
@@ -129,10 +129,10 @@ namespace OhMyDog_API.Controllers
                 if (usuario == null)
                     return BadRequest();
 
-                ExecutaQuery(query: $"INSERT INTO Usuario (Nome, CPF, DataNascimento, CEP, Logradouro, Numero, Bairro, Municipio, Estado, Email, Senha, Celular, Status) VALUES (" +                                    
+                ExecutaQuery(query: $"INSERT INTO Usuario (Nome, CPF, DtNascimento, CEP, Logradouro, Numero, Bairro, Municipio, Estado, Email, Senha, Celular, Status) VALUES (" +                                    
                                     $"'{usuario.Nome}', " +                                   
                                     $"'{usuario.CPF}', " +
-                                    $"'{Convert.ToDateTime(usuario.DataNasc).ToString("yyyyMMdd")}', " +
+                                    $"'{Convert.ToDateTime(usuario.DtNascimento).ToString("yyyyMMdd")}', " +
                                     $"'{usuario.CEP}', " +
                                     $"'{usuario.Logradouro}', " +
                                     $"'{usuario.Numero}', " +
@@ -161,14 +161,14 @@ namespace OhMyDog_API.Controllers
                 string queryString = $"UPDATE Usuario SET " +
                     $"Nome = '{usuario.Nome}', " +
                     $"CPF = '{usuario.CPF}', " +
-                    $"DataNascimento = '{Convert.ToDateTime(usuario.DataNasc).ToString("yyyyMMdd")}', " +
+                    $"DtNascimento = '{Convert.ToDateTime(usuario.DataNasc).ToString("yyyyMMdd")}', " +
                     $"CEP = '{usuario.CEP}', " +
                     $"Logradouro = '{usuario.Logradouro}', " +
                     $"Numero = '{usuario.Numero}', " +
                     $"Bairro = '{usuario.Bairro}', "+
                     $"Municipio = '{usuario.Municipio}', "+
                     $"Estado = '{usuario.Estado}' "+
-                    $"WHERE idUsuario = '{usuario.idUsuario}'";
+                    $"WHERE idUsuario = '{usuario.IdUsuario}'";
 
                 ExecutaQuery(queryString);
 

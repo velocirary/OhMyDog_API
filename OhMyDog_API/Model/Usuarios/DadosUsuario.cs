@@ -8,7 +8,7 @@
 
         public string CPF { get; set; }
 
-        public string DataNasc { get; set; }
+        public string DtNascimento { get; set; }
 
         public string CEP { get; set; }
 
@@ -33,7 +33,7 @@
 
     public class AtualizarUsuario
     {
-        public string idUsuario { get; set; }
+        public string IdUsuario { get; set; }
 
         public string Nome { get; set; }
 

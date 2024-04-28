@@ -26,7 +26,7 @@ namespace OhMyDog_API.Controllers
                         {
                             IdVoucher = reader["IdVoucher"].ToString(),
                             IdPatrocinador = reader["IdPatrocinador"].ToString(),
-                            DataVencimento = Convert.ToDateTime(reader["DataVencimento"]).ToString("dd/MM/yyyy"),
+                            DtVencimento = Convert.ToDateTime(reader["DtVencimento"]).ToString("dd/MM/yyyy"),
                             Cupom = reader["Cupom"].ToString(),
                             Status = reader["Status"].ToString()                            
                         }
@@ -58,7 +58,7 @@ namespace OhMyDog_API.Controllers
                         {
                             IdVoucher = reader["IdVoucher"].ToString(),
                             IdPatrocinador = reader["IdPatrocinador"].ToString(),
-                            DataVencimento = Convert.ToDateTime(reader["DataVencimento"]).ToString("dd/MM/yyyy"),
+                            DtVencimento = Convert.ToDateTime(reader["DtVencimento"]).ToString("dd/MM/yyyy"),
                             Cupom = reader["Cupom"].ToString(),
                             Status = reader["Status"].ToString()
                         }
@@ -83,9 +83,10 @@ namespace OhMyDog_API.Controllers
                 if (voucher == null)
                     return BadRequest();
 
-                ExecutaQuery(query: $"INSERT INTO Voucher (IdPatrocinador, DataVencimento, Cupom, Status) VALUES (" +
+                ExecutaQuery(query: $"INSERT INTO Voucher (IdPatrocinador, Valor, DtVencimento, Cupom, Status) VALUES (" +
                                     $"'{voucher.IdPatrocinador}', " +
-                                    $"'{Convert.ToDateTime(voucher.DataVencimento).ToString("yyyyMMdd")}', " +
+                                    $"'{voucher.Valor}', " +
+                                    $"'{Convert.ToDateTime(voucher.DtVencimento).ToString("yyyyMMdd")}', " +
                                     $"'{voucher.Cupom}', " +
                                     $"'{voucher.Status}')");
                 return Ok();
@@ -104,7 +105,7 @@ namespace OhMyDog_API.Controllers
             {
                 string queryString = $"UPDATE Voucher SET " +
                                      $"Cupom = '{voucher.Cupom}', " +                                     
-                                     $"DataVencimento = '{Convert.ToDateTime(voucher.DataVencimento).ToString("yyyyMMdd")}', " +
+                                     $"DtVencimento = '{Convert.ToDateTime(voucher.DtVencimento).ToString("yyyyMMdd")}', " +
                                      $"Status = '{voucher.Status}' " +
                                      $"WHERE IdVoucher = {voucher.IdVoucher}";
                 ExecutaQuery(queryString);

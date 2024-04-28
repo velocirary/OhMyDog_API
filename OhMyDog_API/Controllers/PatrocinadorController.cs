@@ -83,10 +83,11 @@ namespace OhMyDog_API.Controllers
                 if (patrocinador == null)
                     return BadRequest();
 
-                ExecutaQuery(query: $"INSERT INTO Patrocinador (CNPJ, RazaoSocial, IdUsuario, Status) VALUES (" +
+                ExecutaQuery(query: $"INSERT INTO Patrocinador (CNPJ, RazaoSocial, IdUsuario, Celular, Status) VALUES (" +
                                     $"'{patrocinador.CNPJ}', " +
                                     $"'{patrocinador.RazaoSocial}', " +                                    
                                     $"'{patrocinador.IdUsuario}', " +                                    
+                                    $"'{patrocinador.Celular}', " +                                    
                                     $"'N')");
                 return Ok();
             }
