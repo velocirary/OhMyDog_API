@@ -30,16 +30,15 @@ namespace OhMyDog_API.Controllers
             }
         }
 
-        public static DataTable ExecutaQuery(string query)
         public static async Task<DataTable> ExecutarQuery(string query)
         {
             DataTable table = new DataTable();
-            using (SqlConnection conn = new(connectionString))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
-                conn.Open();
-                using (SqlCommand cmd = new(query, conn))
+                await conn.OpenAsync();
+                using (SqlCommand cmd = new SqlCommand(query, conn))
                 {
-                    using (SqlDataReader rdr = cmd.ExecuteReader())
+                    using (SqlDataReader rdr = await cmd.ExecuteReaderAsync())
                     {
                         table.Load(rdr);
                     }
@@ -47,7 +46,5 @@ namespace OhMyDog_API.Controllers
             }
             return table;
         }
-
-
     }
 }
