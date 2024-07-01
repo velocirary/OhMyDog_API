@@ -31,6 +31,7 @@ namespace OhMyDog_API.Controllers
         }
 
         public static DataTable ExecutaQuery(string query)
+        public static async Task<DataTable> ExecutarQuery(string query)
         {
             DataTable table = new DataTable();
             using (SqlConnection conn = new(connectionString))

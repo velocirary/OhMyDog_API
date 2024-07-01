@@ -2,6 +2,9 @@
 using OhMyDog_API.Model.Voucher;
 using static OhMyDog_API.Controllers.ConexaoController;
 using System.Data;
+using static OhMyDog_API.Constantes.VoucherConstantes;
+using OhMyDog_API.Model.Doacoes;
+using OhMyDog_API.Model.Usuarios;
 
 namespace OhMyDog_API.Controllers
 {
@@ -11,25 +14,26 @@ namespace OhMyDog_API.Controllers
     {
         [HttpGet]
         [Route("TodosVouchers")]
+        [ProducesResponseType(typeof(List<VoucherModel>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetTodosVouchers()
         {
             try
             {
-                var listVoucher = new List<DadosVoucher>();
+                var listVoucher = new List<VoucherModel>();
 
-                var table = ExecutaQuery("SELECT * FROM Voucher");
+                var table = await ExecutarQuery("SELECT * FROM Voucher");
 
                 foreach (DataRow reader in table.Rows)
                 {
                     listVoucher.Add(
-                        item: new DadosVoucher
+                        item: new VoucherModel
                         {
-                            IdVoucher = reader["IdVoucher"].ToString(),
-                            Valor = reader["Valor"].ToString(),
-                            IdPatrocinador = reader["IdPatrocinador"].ToString(),
-                            DtVencimento = Convert.ToDateTime(reader["DtVencimento"]).ToString("dd/MM/yyyy"),
-                            Cupom = reader["Cupom"].ToString(),
-                            Status = reader["Status"].ToString()                            
+                            IdVoucher = reader[Tabela.IdVoucher].ToString(),
+                            Valor = reader[Tabela.Valor].ToString(),
+                            IdPatrocinador = reader[Tabela.IdPatrocinador].ToString(),
+                            DtVencimento = Convert.ToDateTime(reader[Tabela.DtVencimento]).ToString("dd/MM/yyyy"),
+                            Cupom = reader[Tabela.Cupom].ToString(),
+                            Status = reader[Tabela.Status].ToString()
                         }
                     );
                 }
@@ -44,25 +48,26 @@ namespace OhMyDog_API.Controllers
 
         [HttpGet]
         [Route("VoucherPatronicador/{idPatrocinador}")]
+        [ProducesResponseType(typeof(List<VoucherModel>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetVoucherPatronicador([FromRoute] string idPatrocinador)
         {
             try
             {
-                var listVoucher = new List<DadosVoucher>();
+                var listVoucher = new List<VoucherModel>();
 
-                var table = ExecutaQuery($"SELECT * FROM Voucher WHERE idPatrocinador = '{idPatrocinador}'");
+                var table = await ExecutarQuery($"SELECT * FROM Voucher WHERE {Tabela.IdPatrocinador} = '{idPatrocinador}'");
 
                 foreach (DataRow reader in table.Rows)
                 {
                     listVoucher.Add(
-                        item: new DadosVoucher
+                        item: new VoucherModel
                         {
-                            IdVoucher = reader["IdVoucher"].ToString(),
-                            Valor = reader["Valor"].ToString(),
-                            IdPatrocinador = reader["IdPatrocinador"].ToString(),
-                            DtVencimento = Convert.ToDateTime(reader["DtVencimento"]).ToString("dd/MM/yyyy"),
-                            Cupom = reader["Cupom"].ToString(),
-                            Status = reader["Status"].ToString()
+                            IdVoucher = reader[Tabela.IdVoucher].ToString(),
+                            Valor = reader[Tabela.Valor].ToString(),
+                            IdPatrocinador = reader[Tabela.IdPatrocinador].ToString(),
+                            DtVencimento = Convert.ToDateTime(reader[Tabela.DtVencimento]).ToString("dd/MM/yyyy"),
+                            Cupom = reader[Tabela.Cupom].ToString(),
+                            Status = reader[Tabela.Status].ToString()
                         }
                     );
                 }
@@ -73,24 +78,122 @@ namespace OhMyDog_API.Controllers
             {
                 return StatusCode(500, ex.Message + "\n" + ex.StackTrace);
             }
+        }        
+        
+        [HttpGet]
+        [Route("VoucherRandom")]
+        [ProducesResponseType(typeof(VoucherRandom), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetVoucherRandom()
+        {
+            try
+            {               
+                var table = await ExecutarQuery($"SELECT TOP 1 IdVoucher, Cupom FROM Voucher WHERE Status = 'A' ORDER BY NEWID()");
+
+                if (table.Rows.Count > 0)
+                {
+                    var voucher = new VoucherRandom
+                    {
+                        IdVoucher = table.Rows[0][Tabela.IdVoucher].ToString(),
+                        Cupom = table.Rows[0][Tabela.Cupom].ToString()
+                    };
+
+                    await ExecutarQuery($"UPDATE Voucher SET Status = 'I' WHERE IdVoucher = '{voucher.IdVoucher}'");
+                    return Ok(voucher);
+                }
+
+                else
+                    return StatusCode(204, "Não existem Voucher cadastrados no momento");                
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message + "\n" + ex.StackTrace);
+            }
         }
 
+        [HttpGet]
+        [Route("{idVoucher}")]
+        [ProducesResponseType(typeof(VoucherModel), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetVoucherPorVoucher([FromRoute] string idVoucher)
+        {
+            try
+            {               
+                var table = await ExecutarQuery($"SELECT * FROM Voucher WHERE {Tabela.IdVoucher} = '{idVoucher}'");
+
+                if (table.Rows.Count > 0)
+                {
+                    DataRow reader = table.Rows[0];
+
+                    var voucher = new VoucherModel
+                    {
+                        IdVoucher = reader[Tabela.IdVoucher].ToString(),
+                        Valor = reader[Tabela.Valor].ToString(),
+                        IdPatrocinador = reader[Tabela.IdPatrocinador].ToString(),
+                        DtVencimento = Convert.ToDateTime(reader[Tabela.DtVencimento]).ToString("dd/MM/yyyy"),
+                        Cupom = reader[Tabela.Cupom].ToString(),
+                        Status = reader[Tabela.Status].ToString()
+                    };
+
+                    return Ok(voucher);
+                }
+
+                else
+                    return StatusCode(204, "Não existe um Voucher cadastrados com esse ID");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message + "\n" + ex.StackTrace);
+            }
+        }
+
+        [HttpGet]
+        [Route("Cupom/{cupom}")]
+        [ProducesResponseType(typeof(VoucherModel), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetVoucherPorCupom([FromRoute] string cupom)
+        {
+            try
+            {
+                var table = await ExecutarQuery($"SELECT * FROM Voucher WHERE {Tabela.Cupom} = '{cupom}'");
+
+                if (table.Rows.Count > 0)
+                {
+                    DataRow reader = table.Rows[0];
+
+                    var voucher = new VoucherModel
+                    {
+                        IdVoucher = reader[Tabela.IdVoucher].ToString(),
+                        Valor = reader[Tabela.Valor].ToString(),
+                        IdPatrocinador = reader[Tabela.IdPatrocinador].ToString(),
+                        DtVencimento = Convert.ToDateTime(reader[Tabela.DtVencimento]).ToString("dd/MM/yyyy"),
+                        Cupom = reader[Tabela.Cupom].ToString(),
+                        Status = reader[Tabela.Status].ToString()
+                    };
+
+                    return Ok(voucher);
+                }
+
+                else
+                    return StatusCode(204, "Não existe um Voucher cadastrados com esse Cupom");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message + "\n" + ex.StackTrace);
+            }
+        }
 
         [HttpPost]
         [Route("InserirNovoVoucher")]
-        public async Task<IActionResult> PostNovoVoucher([FromBody] DadosVoucher voucher)
+        public async Task<IActionResult> PostNovoVoucher([FromBody] NovoVoucherModel voucher)
         {
             try
             {
                 if (voucher == null)
                     return BadRequest();
 
-                ExecutaQuery(query: $"INSERT INTO Voucher (IdPatrocinador, Valor, DtVencimento, Cupom, Status) VALUES (" +
+                await ExecutarQuery(query: $"INSERT INTO Voucher ({Tabela.IdPatrocinador}, {Tabela.Valor}, {Tabela.DtVencimento}, {Tabela.Cupom}) VALUES (" +
                                     $"'{voucher.IdPatrocinador}', " +
                                     $"'{voucher.Valor}', " +
-                                    $"'{Convert.ToDateTime(voucher.DtVencimento).ToString("yyyyMMdd")}', " +
-                                    $"'{voucher.Cupom}', " +
-                                    $"'{voucher.Status}')");
+                                    $"'{Convert.ToDateTime(voucher.DtVencimento).ToString("yyyyMMdd")}', " +                                    
+                                    $"'{voucher.Cupom}')");
                 return Ok();
             }
             catch (Exception ex)
@@ -106,12 +209,12 @@ namespace OhMyDog_API.Controllers
             try
             {
                 string queryString = $"UPDATE Voucher SET " +
-                                     $"Cupom = '{voucher.Cupom}', " +                                     
-                                     $"Valor = '{voucher.Valor}', " +                                     
-                                     $"DtVencimento = '{Convert.ToDateTime(voucher.DtVencimento).ToString("yyyyMMdd")}', " +
-                                     $"Status = '{voucher.Status}' " +
-                                     $"WHERE IdVoucher = {voucher.IdVoucher}";
-                ExecutaQuery(queryString);
+                                     $"{Tabela.Cupom} = '{voucher.Cupom}', " +                                     
+                                     $"{Tabela.Valor} = '{voucher.Valor}', " +                                     
+                                     $"{Tabela.DtVencimento} = '{Convert.ToDateTime(voucher.DtVencimento).ToString("yyyyMMdd")}', " +
+                                     $"{Tabela.Status} = '{voucher.Status}' " +
+                                     $"WHERE {Tabela.IdVoucher} = {voucher.IdVoucher}";
+                await ExecutarQuery(queryString);
 
                 return Ok();
             }
@@ -127,12 +230,14 @@ namespace OhMyDog_API.Controllers
         {
             try
             {
-                var table = ExecutaQuery($"SELECT idVoucher FROM voucher WHERE idVoucher = '{idVoucher}'");
+                var table = await ExecutarQuery($"SELECT {Tabela.IdVoucher} FROM voucher WHERE {Tabela.IdVoucher} = '{idVoucher}'");
 
                 if (table.Rows.Count == 0)
                     return BadRequest("Voucher não encontrado!");
-
-                ExecutaQuery($"DELETE FROM Voucher WHERE idVoucher = '{idVoucher}'");
+                
+                await ExecutarQuery($"UPDATE Voucher SET " +
+                                     $"{Tabela.Status} = 'I' " +
+                                     $"WHERE {Tabela.IdVoucher} = {idVoucher}");
 
                 return Ok();
             }

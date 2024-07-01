@@ -3,6 +3,8 @@ using static OhMyDog_API.Controllers.ConexaoController;
 using System.Data;
 using OhMyDog_API.Model.Doacoes;
 using OhMyDog_API.Model.Usuarios;
+using static OhMyDog_API.Constantes.DoacaoConstantes;
+using OhMyDog_API.Constantes;
 
 namespace OhMyDog_API.Controllers
 {
@@ -11,61 +13,29 @@ namespace OhMyDog_API.Controllers
     public class DoacaoController : ControllerBase
     {
         [HttpGet]
-        [Route("DoacaoUsuario/{idUsuarioDoador}")]
-        public async Task<IActionResult> GetDoacoesUsuario([FromRoute] string idUsuarioDoador)
-        {
-            try
-            {
-                var infosDoacao = new DadosDoacao();
-
-                var table = ExecutaQuery($"SELECT * FROM Doacao WHERE IdUsuario = '{idUsuarioDoador}'");
-
-                foreach (DataRow reader in table.Rows)
-                {
-                    infosDoacao.IdUsuarioDoador = reader[columnName: "IdUsuario"].ToString();                    
-                    infosDoacao.IdDoacao = reader[columnName: "IdDoacao"].ToString();                    
-                    infosDoacao.IdVoucher = reader[columnName: "IdVoucher"].ToString();                    
-                    infosDoacao.ValorDoacao = reader["Valor"].ToString();
-                    infosDoacao.Mensagem = reader["Mensagem"].ToString();
-                    infosDoacao.ComprovantePix = reader["ComprovantePix"].ToString();
-                    infosDoacao.DtDoacao = Convert.ToDateTime(reader["DtDoacao"]).ToString("dd/MM/yyyy");
-                    infosDoacao.Status = reader["Status"].ToString();
-                    infosDoacao.IdPostagem = reader["IdPostagem"].ToString();
-
-                    return Ok(infosDoacao);
-                }
-
-                return StatusCode(204, "Doação inexistente");
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex.Message + "\n" + ex.StackTrace);
-            }
-        }
-
-        [HttpGet]
         [Route("TodasDoacoes")]
         public async Task<IActionResult> GetTodasDoacoes()
         {
             try
             {
-                var listDoacoes = new List<DadosDoacao>();
-                var table = ExecutaQuery("SELECT * FROM Doacao");
+                var listDoacoes = new List<DoacaoModel>();
+                var table = await ExecutarQuery($"SELECT * FROM {Tabela.NomeTabela}");
 
                 foreach (DataRow reader in table.Rows)
                 {
                     listDoacoes.Add(
-                        item: new DadosDoacao
+                        item: new DoacaoModel
                         {
-                            IdDoacao = reader["IdDoacao"].ToString(),
-                            IdPostagem = reader["IdPostagem"].ToString(),
-                            IdVoucher = reader["IdVoucher"].ToString(),
-                            ValorDoacao = reader["Valor"].ToString(),
-                            Mensagem = reader["Mensagem"].ToString(),
-                            ComprovantePix = reader["ComprovantePix"].ToString(),
-                            DtDoacao = Convert.ToDateTime(reader["DtDoacao"]).ToString("dd/MM/yyyy"),
-                            Status = reader["Status"].ToString(),
-                            IdUsuarioDoador = reader["IdUsuario"].ToString()
+                            IdDoacao = reader[Tabela.IdDoacao].ToString(),
+                            IdPostagem = reader[Tabela.IdPostagem].ToString(),
+                            IdVoucher = reader[Tabela.IdVoucher].ToString(),
+                            ValorDoacao = reader[Tabela.Valor].ToString(),
+                            Mensagem = reader[Tabela.Mensagem].ToString(),
+                            ComprovantePix = reader[Tabela.ComprovantePix].ToString(),
+                            IdTipoDoacao = reader[Tabela.IdTipoDoacao].ToString(),
+                            DtDoacao = Convert.ToDateTime(reader[Tabela.DtDoacao]).ToString("dd/MM/yyyy"),
+                            Status = reader[Tabela.Status].ToString(),
+                            IdUsuarioDoador = reader[Tabela.IdUsuario].ToString()
                         }
                     );
                 }
@@ -74,7 +44,52 @@ namespace OhMyDog_API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(204, "Doaçãoo inexistente");
+                return StatusCode(204, "Doação inexistente. Erro: " + ex.Message);
+            }
+        }
+
+        [HttpGet]
+        [Route("DoacaoUsuario/{idUsuarioDoador}")]
+        [ProducesResponseType(typeof(List<DoacaoUsuarioDoadorModel>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetDoacoesUsuario([FromRoute] string idUsuarioDoador)
+        {
+            try
+            {
+                var doacoes = new List<DoacaoUsuarioDoadorModel>();
+
+                var table = await ExecutarQuery(
+                    $"SELECT *, Voucher.{VoucherConstantes.Tabela.Cupom} FROM {Tabela.NomeTabela} " +
+                    $"LEFT JOIN Voucher ON Voucher.{VoucherConstantes.Tabela.IdVoucher} = Doacao.{Tabela.IdVoucher}" +
+                    $"WHERE {Tabela.IdUsuario} = '{idUsuarioDoador}'");
+
+                foreach (DataRow reader in table.Rows)
+                {
+                    doacoes.Add(
+                        new DoacaoUsuarioDoadorModel()
+                        {
+                            IdDoacao = reader[Tabela.IdDoacao].ToString(),
+                            IdPostagem = reader[Tabela.IdPostagem].ToString(),
+                            IdVoucher = reader[Tabela.IdVoucher].ToString(),
+                            ValorDoacao = reader[Tabela.Valor].ToString(),
+                            Mensagem = reader[Tabela.Mensagem].ToString(),
+                            ComprovantePix = reader[Tabela.ComprovantePix].ToString(),
+                            IdTipoDoacao = reader[Tabela.IdTipoDoacao].ToString(),
+                            DtDoacao = Convert.ToDateTime(reader[Tabela.DtDoacao]).ToString("dd/MM/yyyy"),
+                            Status = reader[Tabela.Status].ToString(),
+                            IdUsuarioDoador = reader[Tabela.IdUsuario].ToString(),
+                            CupomVoucher = reader[VoucherConstantes.Tabela.Cupom].ToString(),
+                        }
+                    );
+                }
+
+                if (doacoes.Count > 0)
+                    return Ok(doacoes);
+                else
+                    return StatusCode(204, "Usuário sem doações.");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message + "\n" + ex.StackTrace);
             }
         }
 
@@ -84,26 +99,277 @@ namespace OhMyDog_API.Controllers
         {
             try
             {
-                var infosDoacao = new DadosDoacao();
+                var doacoes = new List<DoacaoModel>();
 
-                var table = ExecutaQuery($"SELECT * FROM Doacao WHERE idPostagem = '{idPostagem}'");
+                var table = await ExecutarQuery($"SELECT * FROM {Tabela.NomeTabela} WHERE {Tabela.IdPostagem} = '{idPostagem}'");
 
                 foreach (DataRow reader in table.Rows)
                 {
-                    infosDoacao.IdDoacao = reader["IdDoacao"].ToString();
-                    infosDoacao.IdPostagem = reader["IdPostagem"].ToString();
-                    infosDoacao.IdVoucher = reader["IdVoucher"].ToString();
-                    infosDoacao.ValorDoacao = reader["Valor"].ToString();
-                    infosDoacao.Mensagem = reader["Mensagem"].ToString();
-                    infosDoacao.ComprovantePix = reader["ComprovantePix"].ToString();
-                    infosDoacao.DtDoacao = Convert.ToDateTime(reader["DtDoacao"]).ToString("dd/MM/yyyy");
-                    infosDoacao.Status = reader["Status"].ToString();
-                    infosDoacao.IdUsuarioDoador = reader["IdUsuario"].ToString();
-
-                    return Ok(infosDoacao);
+                    doacoes.Add(
+                        new DoacaoModel()
+                        {
+                            IdDoacao = reader[Tabela.IdDoacao].ToString(),
+                            IdPostagem = reader[Tabela.IdPostagem].ToString(),
+                            IdVoucher = reader[Tabela.IdVoucher].ToString(),
+                            ValorDoacao = reader[Tabela.Valor].ToString(),
+                            Mensagem = reader[Tabela.Mensagem].ToString(),
+                            ComprovantePix = reader[Tabela.ComprovantePix].ToString(),
+                            IdTipoDoacao = reader[Tabela.IdTipoDoacao].ToString(),
+                            DtDoacao = Convert.ToDateTime(reader[Tabela.DtDoacao]).ToString("dd/MM/yyyy"),
+                            Status = reader[Tabela.Status].ToString(),
+                            IdUsuarioDoador = reader[Tabela.IdUsuario].ToString(),
+                        }
+                    );
                 }
 
-                return StatusCode(204, "Doaçãoo inexistente");
+                if (doacoes.Count > 0)
+                    return Ok(doacoes);
+                else
+                    return StatusCode(204, "Postagem sem doações.");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message + "\n" + ex.StackTrace);
+            }
+        }        
+        
+        [HttpGet]
+        [Route("TodasDoacoesUsuarioDoador/{idUsuarioDoador}")]
+        public async Task<IActionResult> GetTodasDoacoesUsuario([FromRoute] string idUsuarioDoador)
+        {
+            try
+            {
+                var doacoes = new List<DoacaoUsuarioDoadorModel>();
+
+                var table = await ExecutarQuery(
+                  $"SELECT Doacao.IdDoacao, Doacao.IdPostagem, Doacao.IdVoucher, Doacao.Valor, \r\n" +
+                  "   Doacao.Mensagem, Doacao.ComprovantePix, Doacao.IdTipoDoacao, Doacao.DtDoacao, Doacao.Status, Doacao.IdUsuario, \r\n" +
+                  "   UsuarioPostagem.Nome AS NomeUsuarioPostagem, \r\n" +
+                  "   Postagem.Titulo AS TituloPostagem, Postagem.Status AS StatusPostagem, \r\n" +
+                  "   Voucher.Cupom, Voucher.IdPatrocinador \r\n" +
+                  $"FROM Doacao \r\n" +
+                  $"LEFT JOIN Voucher ON Voucher.IdVoucher = Doacao.IdVoucher \r\n" +
+                  $"LEFT JOIN Postagem ON Doacao.IdPostagem = Postagem.IdPostagem \r\n" +
+                  $"LEFT JOIN Usuario UsuarioPostagem ON UsuarioPostagem.IdUsuario = Postagem.IdUsuario \r\n" +
+                  $"WHERE Doacao.IdUsuario = '{idUsuarioDoador}'");
+
+                foreach (DataRow reader in table.Rows)
+                {
+                    doacoes.Add(
+                        new DoacaoUsuarioDoadorModel()
+                        {
+                            IdDoacao = reader["IdDoacao"].ToString(),
+                            IdPostagem = reader["IdPostagem"].ToString(),
+                            IdVoucher = reader["IdVoucher"].ToString(),
+                            ValorDoacao = reader["Valor"].ToString(),
+                            Mensagem = reader["Mensagem"].ToString(),
+                            ComprovantePix = reader["ComprovantePix"].ToString(),
+                            IdTipoDoacao = reader["IdTipoDoacao"].ToString(),
+                            DtDoacao = Convert.ToDateTime(reader["DtDoacao"]).ToString("dd/MM/yyyy"),
+                            Status = reader["Status"].ToString(),
+                            IdUsuarioDoador = reader["IdUsuario"].ToString(),
+                            NomeUsuarioSolicitante = reader["NomeUsuarioPostagem"].ToString(),
+                            TituloPostagem = reader["TituloPostagem"].ToString(),
+                            StatusPostagem = reader["StatusPostagem"].ToString(),
+                            CupomVoucher = reader["Cupom"].ToString(),
+                            IdPatrocinador = reader["IdPatrocinador"].ToString(),
+                        }
+                    );
+                }
+
+                if (doacoes.Count > 0)
+                    return Ok(doacoes);
+                else
+                    return StatusCode(204, "Postagem sem doações.");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message + "\n" + ex.StackTrace);
+            }
+        }
+
+        [HttpGet]
+        [Route("TodasDoacoesUsuarioSolicitante/{idUsuarioSolicitante}")]
+        public async Task<IActionResult> GetTodasDoacoesUsuarioSolicitante([FromRoute] string idUsuarioSolicitante)
+        {
+            try
+            {
+                var doacoes = new List<DoacaoUsuarioSolicitanteModel>();
+
+                var table = await ExecutarQuery(
+               $"SELECT \r\n" +
+               $"    Doacao.IdDoacao, \r\n" +
+               $"    Doacao.IdPostagem, \r\n" +
+               $"    Doacao.IdVoucher, \r\n" +
+               $"    Doacao.Valor, \r\n" +
+               $"    Doacao.Mensagem, \r\n" +
+               $"    Doacao.ComprovantePix, \r\n" +
+               $"    Doacao.IdTipoDoacao, \r\n" +
+               $"    Doacao.DtDoacao, \r\n" +
+               $"    Doacao.Status, \r\n" +
+               $"    Doacao.IdUsuario, \r\n" +
+               $"    UsuarioDoador.Nome, \r\n" +
+               $"    Postagem.Titulo, \r\n" +
+               $"    Postagem.Status AS StatusPostagem, \r\n" +
+               $"    Voucher.Cupom, Voucher.IdPatrocinador \r\n" +
+               $"FROM Doacao \r\n" +
+               $"INNER JOIN Postagem ON Doacao.IdPostagem = Postagem.IdPostagem \r\n" +
+               $"INNER JOIN Usuario UsuarioSolicitante ON UsuarioSolicitante.IdUsuario = Postagem.IdUsuario \r\n" +
+               $"INNER JOIN Usuario UsuarioDoador ON UsuarioDoador.IdUsuario = Doacao.IdUsuario \r\n" +
+               $"LEFT JOIN Voucher ON Voucher.IdVoucher = Doacao.IdVoucher \r\n" +
+               $"WHERE UsuarioSolicitante.IdUsuario = '{idUsuarioSolicitante}'");
+
+                foreach (DataRow reader in table.Rows)
+                {
+                    doacoes.Add(
+                        new DoacaoUsuarioSolicitanteModel()
+                        {
+                            IdDoacao = reader["IdDoacao"].ToString(),
+                            IdPostagem = reader["IdPostagem"].ToString(),
+                            IdVoucher = reader["IdVoucher"].ToString(),
+                            ValorDoacao = reader["Valor"].ToString(),
+                            Mensagem = reader["Mensagem"].ToString(),
+                            ComprovantePix = reader["ComprovantePix"].ToString(),
+                            IdTipoDoacao = reader["IdTipoDoacao"].ToString(),
+                            DtDoacao = Convert.ToDateTime(reader["DtDoacao"]).ToString("dd/MM/yyyy"),
+                            Status = reader["Status"].ToString(),
+                            IdUsuarioDoador = reader["IdUsuario"].ToString(),
+                            NomeUsuarioDoador = reader["Nome"].ToString(),
+                            TituloPostagem = reader["Titulo"].ToString(),
+                            StatusPostagem = reader["StatusPostagem"].ToString(),
+                            CupomVoucher = reader["Cupom"].ToString(),
+                            IdPatrocinador = reader["IdPatrocinador"].ToString(),
+                        }
+                    );
+                }
+
+                if (doacoes.Count > 0)
+                    return Ok(doacoes);
+                else
+                    return StatusCode(204, "Postagem sem doações.");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message + "\n" + ex.StackTrace);
+            }
+        }
+
+        [HttpGet]
+        [Route("UltimasDoacaoUsuario/{idUsuarioDoador}")]
+        [ProducesResponseType(typeof(List<DoacaoUsuarioDoadorModel>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetUltimasDoacoesUsuario([FromRoute] string idUsuarioDoador)
+        {
+            try
+            {
+                var doacoes = new List<DoacaoUsuarioDoadorModel>();
+
+                var table = await ExecutarQuery(
+                $"SELECT TOP 5 Doacao.IdDoacao, Doacao.IdPostagem, Doacao.IdVoucher, Doacao.Valor, \r\n" +
+                "   Doacao.Mensagem, Doacao.ComprovantePix, Doacao.IdTipoDoacao, Doacao.DtDoacao, Doacao.Status, Doacao.IdUsuario, \r\n" +
+                "   UsuarioPostagem.Nome AS NomeUsuarioPostagem, \r\n" +
+                "   Postagem.Titulo AS TituloPostagem, Postagem.Status AS StatusPostagem, \r\n" +
+                "   Voucher.Cupom, Voucher.IdPatrocinador \r\n" +
+                $"FROM Doacao \r\n" +
+                $"LEFT JOIN Voucher ON Voucher.IdVoucher = Doacao.IdVoucher \r\n" +
+                $"LEFT JOIN Postagem ON Doacao.IdPostagem = Postagem.IdPostagem \r\n" +
+                $"LEFT JOIN Usuario UsuarioPostagem ON UsuarioPostagem.IdUsuario = Postagem.IdUsuario \r\n" +
+                $"WHERE Doacao.IdUsuario = '{idUsuarioDoador}'");
+
+                foreach (DataRow reader in table.Rows)
+                {
+                    doacoes.Add(
+                        new DoacaoUsuarioDoadorModel()
+                        {
+                            IdDoacao = reader["IdDoacao"].ToString(),
+                            IdPostagem = reader["IdPostagem"].ToString(),
+                            IdVoucher = reader["IdVoucher"].ToString(),
+                            ValorDoacao = reader["Valor"].ToString(),
+                            Mensagem = reader["Mensagem"].ToString(),
+                            ComprovantePix = reader["ComprovantePix"].ToString(),
+                            IdTipoDoacao = reader["IdTipoDoacao"].ToString(),
+                            DtDoacao = Convert.ToDateTime(reader["DtDoacao"]).ToString("dd/MM/yyyy"),
+                            Status = reader["Status"].ToString(),
+                            IdUsuarioDoador = reader["IdUsuario"].ToString(),
+                            NomeUsuarioSolicitante = reader["NomeUsuarioPostagem"].ToString(),
+                            TituloPostagem = reader["TituloPostagem"].ToString(),
+                            StatusPostagem = reader["StatusPostagem"].ToString(),
+                            CupomVoucher = reader["Cupom"].ToString(),
+                            IdPatrocinador = reader["IdPatrocinador"].ToString(),
+                        }
+                    );
+                }
+
+                if (doacoes.Count > 0)
+                    return Ok(doacoes);
+                else
+                    return StatusCode(204, "Usuário sem doações.");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message + "\n" + ex.StackTrace);
+            }
+        }
+
+        [HttpGet]
+        [Route("UltimasDoacoesUsuarioSolicitante/{idUsuarioSolicitante}")]
+        [ProducesResponseType(typeof(List<DoacaoUsuarioSolicitanteModel>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetUltimasDoacoesUsuarioSolicitante([FromRoute] string idUsuarioSolicitante)
+        {
+            try
+            {
+                var doacoes = new List<DoacaoUsuarioSolicitanteModel>();
+
+                var table = await ExecutarQuery(
+                $"SELECT TOP 5 \r\n" +
+                $"    Doacao.IdDoacao, \r\n" +
+                $"    Doacao.IdPostagem, \r\n" +
+                $"    Doacao.IdVoucher, \r\n" +
+                $"    Doacao.Valor, \r\n" +
+                $"    Doacao.Mensagem, \r\n" +
+                $"    Doacao.ComprovantePix, \r\n" +
+                $"    Doacao.IdTipoDoacao, \r\n" +
+                $"    Doacao.DtDoacao, \r\n" +
+                $"    Doacao.Status, \r\n" +
+                $"    Doacao.IdUsuario, \r\n" +
+                $"    UsuarioDoador.Nome, \r\n" +
+                $"    Postagem.Titulo, \r\n" +
+                $"    Postagem.Status AS StatusPostagem, \r\n" +
+                $"    Voucher.Cupom, Voucher.IdPatrocinador \r\n" +
+                $"FROM Doacao \r\n" +
+                $"INNER JOIN Postagem ON Doacao.IdPostagem = Postagem.IdPostagem \r\n" +
+                $"INNER JOIN Usuario UsuarioSolicitante ON UsuarioSolicitante.IdUsuario = Postagem.IdUsuario \r\n" +
+                $"INNER JOIN Usuario UsuarioDoador ON UsuarioDoador.IdUsuario = Doacao.IdUsuario \r\n" +
+                $"LEFT JOIN Voucher ON Voucher.IdVoucher = Doacao.IdVoucher \r\n" +
+                $"WHERE UsuarioSolicitante.IdUsuario = '{idUsuarioSolicitante}'");
+
+                foreach (DataRow reader in table.Rows)
+                {
+                    doacoes.Add(
+                        new DoacaoUsuarioSolicitanteModel()
+                        {
+                            IdDoacao = reader["IdDoacao"].ToString(),
+                            IdPostagem = reader["IdPostagem"].ToString(),
+                            IdVoucher = reader["IdVoucher"].ToString(),
+                            ValorDoacao = reader["Valor"].ToString(),
+                            Mensagem = reader["Mensagem"].ToString(),
+                            ComprovantePix = reader["ComprovantePix"].ToString(),
+                            IdTipoDoacao = reader["IdTipoDoacao"].ToString(),
+                            DtDoacao = Convert.ToDateTime(reader["DtDoacao"]).ToString("dd/MM/yyyy"),
+                            Status = reader["Status"].ToString(),
+                            IdUsuarioDoador = reader["IdUsuario"].ToString(),
+                            NomeUsuarioDoador = reader["Nome"].ToString(),
+                            TituloPostagem = reader["Titulo"].ToString(),
+                            StatusPostagem = reader["StatusPostagem"].ToString(),
+                            CupomVoucher = reader["Cupom"].ToString(),
+                            IdPatrocinador = reader["IdPatrocinador"].ToString(),
+                        }
+                    );
+                }
+
+                if (doacoes.Count > 0)
+                    return Ok(doacoes);
+                else
+                    return StatusCode(204, "Usuário sem doações.");
             }
             catch (Exception ex)
             {
@@ -113,23 +379,21 @@ namespace OhMyDog_API.Controllers
 
         [HttpPost]
         [Route("InserirNovaDoacao")]
-        public async Task<IActionResult> PostNovaDoacao([FromBody] DadosDoacao doacao)
+        public async Task<IActionResult> PostNovaDoacao([FromBody] NovaDoacaoModel doacao)
         {
             try
             {
                 if (doacao == null)
                     return BadRequest();
 
-                ExecutaQuery(query: $"INSERT INTO Doacao (IdAdminstrador, Valor, Mensagem, IdUsuario, IdVoucher, IdPostagem, ComprovantePix, DtDoacao, Status) VALUES (" +
-                                    $"'{doacao.IdAdminstrador}', " +
-                                    $"'{doacao.ValorDoacao}', " +
-                                    $"'{doacao.Mensagem}', " +
-                                    $"'{doacao.IdUsuarioDoador}', " +
-                                    $"'{doacao.IdVoucher}', " +
-                                    $"'{doacao.IdPostagem}', " +
-                                    $"'{doacao.ComprovantePix}', " +
-                                    $"'{doacao.DtDoacao}', " +
-                                    $"'P')");
+                await ExecutarQuery(query:
+                    $"INSERT INTO {Tabela.NomeTabela} ({Tabela.Valor}, {Tabela.Mensagem}, {Tabela.IdUsuario}, {Tabela.IdPostagem}, {Tabela.ComprovantePix}, {Tabela.IdTipoDoacao}) VALUES (" +
+                    $"'{doacao.ValorDoacao}', " +
+                    $"'{doacao.Mensagem}', " +
+                    $"'{doacao.IdUsuarioDoador}', " +
+                    $"'{doacao.IdPostagem}', " +
+                    $"'{doacao.ComprovantePix}', " +
+                    $"'{doacao.IdTipoDoacao}' ) ");
 
                 return Ok();
             }
@@ -140,15 +404,15 @@ namespace OhMyDog_API.Controllers
         }
 
         [HttpPatch]
-        [Route("AprovarDoacao/{idDoacao}/{status}")]
+        [Route("AprovarDoacao/{idDoacao}/{statusDoacao}")]
         public async Task<IActionResult> AprovarDoacao([FromRoute] string idDoacao, [FromRoute] string statusDoacao)
         {
             try
             {
-                string queryString = $"UPDATE Doacao SET " +
-                                     $"Status = '{statusDoacao}' " +
-                                     $"WHERE idPatrocinador = {idDoacao}";
-                ExecutaQuery(queryString);
+                string queryString = $"UPDATE {Tabela.NomeTabela} SET " +
+                                     $"{Tabela.Status} = '{statusDoacao}' " +
+                                     $"WHERE {Tabela.IdDoacao} = {idDoacao}";
+                await ExecutarQuery(queryString);
 
                 return Ok();
             }

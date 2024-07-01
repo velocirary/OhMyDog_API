@@ -1,10 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using System.Data.Odbc;
-using static OhMyDog_API.Model.Parameters;
-using System.Web;
 using OhMyDog_API.Model.Usuarios;
 using static OhMyDog_API.Controllers.ConexaoController;
 using System.Data;
+using static OhMyDog_API.Constantes.UsuarioConstantes;
 
 namespace OhMyDog_API.Controllers
 {
@@ -18,29 +16,30 @@ namespace OhMyDog_API.Controllers
         {
             try
             {
-                var listLoginUsuario = new List<DadosUsuario>();
+                var listLoginUsuario = new List<UsuarioModel>();
 
-                var table = ExecutaQuery("SELECT * FROM Usuario");
+                var table = await ExecutarQuery("SELECT * FROM Usuario");
 
                 foreach (DataRow reader in table.Rows)
                 {
                     listLoginUsuario.Add(
-                        item: new DadosUsuario
+                        item: new UsuarioModel
                         {
-                            idUsuario = reader["idUsuario"].ToString(),
-                            Nome = reader["Nome"].ToString(),
-                            CPF = reader["CPF"].ToString(),
-                            DtNascimento = Convert.ToDateTime(reader["DtNascimento"]).ToString("dd/MM/yyyy"),
-                            CEP = reader["CEP"].ToString(),
-                            Logradouro = reader["Logradouro"].ToString(),
-                            Numero = reader["Numero"].ToString(),
-                            Bairro = reader["Bairro"].ToString(),
-                            Municipio = reader["Municipio"].ToString(),
-                            Estado = reader["Estado"].ToString(),
-                            Email = reader["Email"].ToString(),
-                            Senha = reader["Senha"].ToString(),
-                            Celular = reader["Celular"].ToString(),
-                            Status = reader["Status"].ToString()
+                            idUsuario = reader[Tabela.IdUsuario].ToString(),
+                            Nome = reader[Tabela.Nome].ToString(),
+                            CPF = reader[Tabela.CPF].ToString(),
+                            DtNascimento = Convert.ToDateTime(reader[Tabela.DtNascimento]).ToString("dd/MM/yyyy"),
+                            CEP = reader[Tabela.CEP].ToString(),
+                            Logradouro = reader[Tabela.Logradouro].ToString(),
+                            Numero = reader[Tabela.Numero].ToString(),
+                            Bairro = reader[Tabela.Bairro].ToString(),
+                            Municipio = reader[Tabela.Municipio].ToString(),
+                            Estado = reader[Tabela.Estado].ToString(),
+                            Email = reader[Tabela.Email].ToString(),
+                            Senha = reader[Tabela.Senha].ToString(),
+                            Celular = reader[Tabela.Celular].ToString(),
+                            UrlFoto = reader[Tabela.UrlFoto].ToString(),
+                            Status = reader[Tabela.Status].ToString(),
                         }
                     );
                 }
@@ -55,32 +54,34 @@ namespace OhMyDog_API.Controllers
 
         [HttpGet]
         [Route("Usuario/{idUsuario}")]
+        [ProducesResponseType(typeof(UsuarioModel), StatusCodes.Status200OK)]
         public async Task<IActionResult> RetornarUsuario([FromRoute] string idUsuario)
         {
             try
             {
-                var loginUsuario = new DadosUsuario();
+                var usuario = new UsuarioModel();
 
-                var table = ExecutaQuery($"SELECT * FROM Usuario WHERE idUsuario = '{idUsuario}'");
+                var table = await ExecutarQuery($"SELECT * FROM Usuario WHERE {Tabela.IdUsuario} = '{idUsuario}'");
                 
                 foreach (DataRow reader in table.Rows)
                 {
-                    loginUsuario.idUsuario = reader["idUsuario"].ToString();
-                    loginUsuario.Nome = reader["Nome"].ToString();
-                    loginUsuario.CPF = reader["CPF"].ToString();
-                    loginUsuario.DtNascimento = Convert.ToDateTime(reader["DtNascimento"]).ToString("dd/MM/yyyy");
-                    loginUsuario.CEP = reader["CEP"].ToString();
-                    loginUsuario.Logradouro = reader["Logradouro"].ToString();
-                    loginUsuario.Numero = reader["Numero"].ToString();
-                    loginUsuario.Bairro = reader["Bairro"].ToString();
-                    loginUsuario.Municipio = reader["Municipio"].ToString();
-                    loginUsuario.Estado = reader["Estado"].ToString();
-                    loginUsuario.Email = reader["Email"].ToString();
-                    loginUsuario.Senha = reader["Senha"].ToString();
-                    loginUsuario.Celular = reader["Celular"].ToString();
-                    loginUsuario.Status = reader["Status"].ToString();
+                    usuario.idUsuario = reader[Tabela.IdUsuario].ToString();
+                    usuario.Nome = reader[Tabela.Nome].ToString();
+                    usuario.CPF = reader[Tabela.CPF].ToString();
+                    usuario.DtNascimento = Convert.ToDateTime(reader[Tabela.DtNascimento]).ToString("dd/MM/yyyy");
+                    usuario.CEP = reader[Tabela.CEP].ToString();
+                    usuario.Logradouro = reader[Tabela.Logradouro].ToString();
+                    usuario.Numero = reader[Tabela.Numero].ToString();
+                    usuario.Bairro = reader[Tabela.Bairro].ToString();
+                    usuario.Municipio = reader[Tabela.Municipio].ToString();
+                    usuario.Estado = reader[Tabela.Estado].ToString();
+                    usuario.Email = reader[Tabela.Email].ToString();
+                    usuario.Senha = reader[Tabela.Senha].ToString();
+                    usuario.Celular = reader[Tabela.Celular].ToString();
+                    usuario.UrlFoto = reader[Tabela.UrlFoto].ToString();
+                    usuario.Status = reader[Tabela.Status].ToString();
 
-                    return Ok(loginUsuario);
+                    return Ok(usuario);
                 }
 
                 return StatusCode(204, "Usuário inexistente");
@@ -93,24 +94,25 @@ namespace OhMyDog_API.Controllers
 
         [HttpPost]
         [Route("LoginUsuario")]
+        [ProducesResponseType(typeof(UsuarioLogado), StatusCodes.Status200OK)]
         public async Task<IActionResult> PostLogarUsuario([FromBody] LoginUsuario login)
         {
             try
             {
-                var loginUsuario = new DadosUsuario();
+                var loginUsuario = new UsuarioModel();
 
-                var table = ExecutaQuery($"exec sp_Login '{login.Email}', '{login.Senha}'");                
+                var table = await ExecutarQuery($"exec LogarUsuario '{login.Email}', '{login.Senha}'");                
 
                 if (table.Rows.Count > 0)
                 {
-                    var usuarioLogado = new
-                    {
-                        idUsuario = table.Rows[0]["IdUsuario"],
-                        nome = table.Rows[0]["Nome"],
-                        tipoUsuario = table.Rows[0]["TipoUsuario"]
-                    };
-
-                    return Ok(usuarioLogado);
+                    return Ok(
+                        new UsuarioLogado
+                        {
+                            IdUsuario = table.Rows[0][Tabela.IdUsuario].ToString(),
+                            Nome = table.Rows[0][Tabela.Nome].ToString(),
+                            TipoUsuario = table.Rows[0]["TipoUsuario"].ToString(),
+                            IdPatrocinador = table.Rows[0]["IdPatrocinador"].ToString()
+                        });
                 }
                 else
                     return StatusCode(204, "Credenciais inválidas");
@@ -123,27 +125,28 @@ namespace OhMyDog_API.Controllers
 
         [HttpPost]
         [Route("InserirNovoUsuario")]
-        public async Task<IActionResult> PostNovoUsuario([FromBody] DadosUsuario usuario)
+        public async Task<IActionResult> PostNovoUsuario([FromBody] NovoUsuarioModel usuario)
         {
             try
             {
                 if (usuario == null)
                     return BadRequest();
 
-                ExecutaQuery(query: $"INSERT INTO Usuario (Nome, CPF, DtNascimento, CEP, Logradouro, Numero, Bairro, Municipio, Estado, Email, Senha, Celular, Status) VALUES (" +                                    
-                                    $"'{usuario.Nome}', " +                                   
-                                    $"'{usuario.CPF}', " +
-                                    $"'{Convert.ToDateTime(usuario.DtNascimento).ToString("yyyyMMdd")}', " +
-                                    $"'{usuario.CEP}', " +
-                                    $"'{usuario.Logradouro}', " +
-                                    $"'{usuario.Numero}', " +
-                                    $"'{usuario.Bairro}', " +
-                                    $"'{usuario.Municipio}', " +
-                                    $"'{usuario.Estado}', " +
-                                    $"'{usuario.Email}', " +
-                                    $"'{usuario.Senha}', " +
-                                    $"'{usuario.Celular}', " +
-                                    $"'{usuario.Status}')");
+                await ExecutarQuery(
+                    $"INSERT INTO Usuario ({Tabela.Nome}, {Tabela.CPF}, {Tabela.DtNascimento}, {Tabela.CEP}, {Tabela.Logradouro}, {Tabela.Numero}, {Tabela.Bairro}, {Tabela.Municipio}, {Tabela.Estado}, {Tabela.Email}, {Tabela.Senha}, {Tabela.Celular}, {Tabela.UrlFoto}) VALUES (" +
+                    $"'{usuario.Nome}', " +
+                    $"'{usuario.CPF}', " +
+                    $"'{Convert.ToDateTime(usuario.DtNascimento).ToString("yyyyMMdd")}', " +
+                    $"'{usuario.CEP}', " +
+                    $"'{usuario.Logradouro}', " +
+                    $"'{usuario.Numero}', " +
+                    $"'{usuario.Bairro}', " +
+                    $"'{usuario.Municipio}', " +
+                    $"'{usuario.Estado}', " +
+                    $"'{usuario.Email}', " +
+                    $"'{usuario.Senha}', " +
+                    $"'{usuario.Celular}', " +                    
+                    $"'{usuario.UrlFoto}')");
 
                 return Ok();
             }
@@ -160,18 +163,21 @@ namespace OhMyDog_API.Controllers
             try
             {
                 string queryString = $"UPDATE Usuario SET " +
-                    $"Nome = '{usuario.Nome}', " +
-                    $"CPF = '{usuario.CPF}', " +
-                    $"DtNascimento = '{Convert.ToDateTime(usuario.DataNasc).ToString("yyyyMMdd")}', " +
-                    $"CEP = '{usuario.CEP}', " +
-                    $"Logradouro = '{usuario.Logradouro}', " +
-                    $"Numero = '{usuario.Numero}', " +
-                    $"Bairro = '{usuario.Bairro}', "+
-                    $"Municipio = '{usuario.Municipio}', "+
-                    $"Estado = '{usuario.Estado}' "+
-                    $"WHERE idUsuario = '{usuario.IdUsuario}'";
+                    $"{Tabela.Nome} = '{usuario.Nome}', " +
+                    $"{Tabela.CPF} = '{usuario.CPF}', " +                
+                    $"{Tabela.DtNascimento} = '{Convert.ToDateTime(usuario.DataNasc).ToString("yyyyMMdd")}', " +
+                    $"{Tabela.CEP} = '{usuario.CEP}', " +
+                    $"{Tabela.Logradouro} = '{usuario.Logradouro}', " +
+                    $"{Tabela.Numero} = '{usuario.Numero}', " +
+                    $"{Tabela.Bairro} = '{usuario.Bairro}', "+
+                    $"{Tabela.Municipio} = '{usuario.Municipio}', "+
+                    $"{Tabela.Estado} = '{usuario.Estado}', " +
+                    $"{Tabela.Celular} = '{usuario.Celular}', " +
+                    $"{Tabela.Senha} = '{usuario.Senha}', " +
+                    $"{Tabela.UrlFoto} = '{usuario.UrlFoto}' " +
+                    $"WHERE {Tabela.IdUsuario} = '{usuario.IdUsuario}'";
 
-                ExecutaQuery(queryString);
+                await ExecutarQuery(queryString);
 
                 return Ok();
             }
@@ -187,12 +193,12 @@ namespace OhMyDog_API.Controllers
         {
             try
             {
-                var table = ExecutaQuery($"SELECT idUsuario FROM Usuario WHERE idUsuario = '{idUsuario}'");
+                var table = await ExecutarQuery($"SELECT {Tabela.IdUsuario} FROM Usuario WHERE {Tabela.IdUsuario} = '{idUsuario}'");
 
                 if (table.Rows.Count == 0)
                     return BadRequest("Agendamento não encontrado!");
 
-                ExecutaQuery($"DELETE FROM Usuario WHERE idUsuario ='{idUsuario}'");
+                await ExecutarQuery($"UPDATE Usuario SET {Tabela.Status} = 'N' WHERE {Tabela.IdUsuario} = '{idUsuario}'");
 
                 return Ok();
             }

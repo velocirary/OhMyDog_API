@@ -2,7 +2,7 @@
 using OhMyDog_API.Model.Patrocinador;
 using static OhMyDog_API.Controllers.ConexaoController;
 using System.Data;
-
+using static OhMyDog_API.Constantes.PatrocinadorConstantes;
 
 namespace OhMyDog_API.Controllers
 {
@@ -17,21 +17,23 @@ namespace OhMyDog_API.Controllers
         {
             try
             {
-                var listPatrocinador = new List<DadosPatrocinador>();
+                var listPatrocinador = new List<PatrocinadorModel>();
 
-                var table = ExecutaQuery("SELECT * FROM Patrocinador");
+                var table = await ExecutarQuery("SELECT * FROM Patrocinador");
 
                 foreach (DataRow reader in table.Rows)
                 {
                     listPatrocinador.Add(
-                        item: new DadosPatrocinador
+                        item: new PatrocinadorModel
                         {
-                            IdPatrocinador = reader["IdPatrocinador"].ToString(),
-                            CNPJ = reader["CNPJ"].ToString(),
-                            RazaoSocial = reader["RazaoSocial"].ToString(),                            
-                            IdUsuario = reader["IdUsuario"].ToString(),
-                            Celular = reader["Celular"].ToString(),
-                            Status = reader["Status"].ToString()
+                            IdPatrocinador = reader[Tabela.IdPatrocinador].ToString(),
+                            CNPJ = reader[Tabela.CNPJ].ToString(),
+                            RazaoSocial = reader[Tabela.RazaoSocial].ToString(),
+                            IdUsuario = reader[Tabela.IdUsuario].ToString(),
+                            InscricaoEstadual = reader[Tabela.InscricaoEstadual].ToString(),
+                            Observacao = reader[Tabela.Observacao].ToString(),
+                            MsgAdministrador = reader[Tabela.MsgAdministrador].ToString(),
+                            Status = reader[Tabela.Status].ToString()
                         }
                     );
                 }
@@ -50,22 +52,24 @@ namespace OhMyDog_API.Controllers
         {
             try
             {
-                var infosPatrocinador = new DadosPatrocinador();
+                var infosPatrocinador = new PatrocinadorModel();
 
-                var table = ExecutaQuery($"SELECT * FROM Patrocinador WHERE idPatrocinador = '{idPatrocinador}'");
+                var table = await ExecutarQuery($"SELECT * FROM Patrocinador WHERE {Tabela.IdPatrocinador} = '{idPatrocinador}'");
 
                 foreach (DataRow reader in table.Rows)
                 {
-                    infosPatrocinador.IdPatrocinador = reader["IdPatrocinador"].ToString();
-                    infosPatrocinador.CNPJ = reader["CNPJ"].ToString();
-                    infosPatrocinador.RazaoSocial = reader["RazaoSocial"].ToString();                    
-                    infosPatrocinador.IdUsuario = reader["IdUsuario"].ToString();
-                    infosPatrocinador.Celular = reader["Celular"].ToString();
-                    infosPatrocinador.Status = reader["Status"].ToString();
-
+                    infosPatrocinador.IdPatrocinador = reader[Tabela.IdPatrocinador].ToString();
+                    infosPatrocinador.CNPJ = reader[Tabela.CNPJ].ToString();
+                    infosPatrocinador.RazaoSocial = reader[Tabela.RazaoSocial].ToString();
+                    infosPatrocinador.IdUsuario = reader[Tabela.IdUsuario].ToString();
+                    infosPatrocinador.InscricaoEstadual = reader[Tabela.InscricaoEstadual].ToString();
+                    infosPatrocinador.Observacao = reader[Tabela.Observacao].ToString();
+                    infosPatrocinador.MsgAdministrador = reader[Tabela.MsgAdministrador].ToString();
+                    infosPatrocinador.Status = reader[Tabela.Status].ToString();
 
                     return Ok(infosPatrocinador);
                 }
+
                 return StatusCode(204, "Patrocinador inexistente");
             }
             catch (Exception ex)
@@ -76,20 +80,23 @@ namespace OhMyDog_API.Controllers
 
         [HttpPost]
         [Route("InserirNovoPatrocinador")]
-        public async Task<IActionResult> PostNovoPatrocinador([FromBody] DadosPatrocinador patrocinador)
+        public async Task<IActionResult> PostNovoPatrocinador([FromBody] NovoPatrocinadorModel patrocinador)
         {
             try
             {
                 if (patrocinador == null)
                     return BadRequest();
 
-                ExecutaQuery(query: $"INSERT INTO Patrocinador (CNPJ, RazaoSocial, IdUsuario, Celular, Status) VALUES (" +
-                                    $"'{patrocinador.CNPJ}', " +
-                                    $"'{patrocinador.RazaoSocial}', " +                                    
-                                    $"'{patrocinador.IdUsuario}', " +                                    
-                                    $"'{patrocinador.Celular}', " +                                    
-                                    $"'N')");
+                await ExecutarQuery(query:
+                    $"INSERT INTO Patrocinador ({Tabela.CNPJ}, {Tabela.RazaoSocial}, {Tabela.IdUsuario}, {Tabela.InscricaoEstadual}, {Tabela.Observacao}) VALUES (" +
+                    $"'{patrocinador.CNPJ}', " +
+                    $"'{patrocinador.RazaoSocial}', " +
+                    $"'{patrocinador.IdUsuario}', " +
+                    $"'{patrocinador.InscricaoEstadual}', " +
+                    $"'{patrocinador.Observacao}' )");
+
                 return Ok();
+
             }
             catch (Exception ex)
             {
@@ -98,19 +105,53 @@ namespace OhMyDog_API.Controllers
         }
 
         [HttpPatch]
-        [Route("AprovarPatrocinador/{idPatrocinador}/{statusPatrocinador}")]
-        public async Task<IActionResult> AprovarPatrocinador([FromRoute] string idPatrocinador, [FromRoute] string statusPatrocinador) 
+        [Route("AprovarPatrocinador/{idPatrocinador}/{statusPatrocinador}/{msgAdministrador}")]
+        public async Task<IActionResult> AprovarPatrocinador([FromRoute] string idPatrocinador, [FromRoute] string statusPatrocinador, [FromRoute] string msgAdministrador) 
         {
-            var patrocinador = new AprovaPatrocinador();
-
             try
             {
-                string queryString = $"UPDATE Patrocinador SET " +                                    
-                                     $"Status = '{statusPatrocinador}' " +
-                                     $"WHERE idPatrocinador = {idPatrocinador}";
-                ExecutaQuery(queryString);
+                string queryString = $"UPDATE Patrocinador SET " +
+                                     $"{Tabela.Status} = '{statusPatrocinador}', " +
+                                     $"{Tabela.MsgAdministrador} = '{msgAdministrador}' " +
+                                     $"WHERE {Tabela.IdPatrocinador} = {idPatrocinador}";
+                
+                await ExecutarQuery(queryString);
 
                 return Ok();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message + "\n" + ex.StackTrace);
+            }
+        }
+
+        [HttpGet]
+        [Route("UltimosPatrocinadoresPendentesAprovacao")]
+        public async Task<IActionResult> GetUltimosPatrocinadoresPendentes()
+        {
+            try
+            {
+                var listPatrocinadoresPendentes = new List<PatrocinadorModel>();
+                var table = await ExecutarQuery($"SELECT TOP 5 * FROM {Tabela.NomeTabela} WHERE {Tabela.Status} = 'P' ORDER BY IdPatrocinador DESC");
+
+                foreach (DataRow reader in table.Rows)
+                {
+                    listPatrocinadoresPendentes.Add(
+                        new PatrocinadorModel
+                        {
+                            IdPatrocinador = reader[Tabela.IdPatrocinador].ToString(),
+                            CNPJ = reader[Tabela.CNPJ].ToString(),
+                            RazaoSocial = reader[Tabela.RazaoSocial].ToString(),
+                            IdUsuario = reader[Tabela.IdUsuario].ToString(),
+                            InscricaoEstadual = reader[Tabela.InscricaoEstadual].ToString(),
+                            Observacao = reader[Tabela.Observacao].ToString(),
+                            MsgAdministrador = reader[Tabela.MsgAdministrador].ToString(),
+                            Status = reader[Tabela.Status].ToString()
+                        }
+                    );
+                }
+
+                return Ok(listPatrocinadoresPendentes);
             }
             catch (Exception ex)
             {
