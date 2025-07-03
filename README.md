@@ -48,6 +48,3 @@ A API agora estará em execução localmente em `https://localhost:5001`.
   }
 ]
  ```
-
-## Licença
-Este projeto é licenciado sob a Licença MIT - veja o arquivo [LICENSE](LICENSE) para obter detalhes.
